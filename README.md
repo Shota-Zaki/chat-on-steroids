@@ -72,7 +72,7 @@ shasum -a 256 Chat-On-Steroids-macOS-arm64.dmg    # macOS
 sha256sum Chat-On-Steroids-Linux-x64.AppImage     # Linux
 ```
 
-> **This is a beta with real permissions.** A fresh install starts with the full Core capability set on, read-only mode off, multi-agent mode on with two workers, and, on Windows, the Desktop permissions on. On macOS the Desktop permissions start off; enable them in **Settings → Workspace**, then grant Screen Recording and Accessibility in System Settings. Linux has Core tools but no Desktop computer-control backend. Review folder access before connecting: `exec_command` runs programs as your logged-in user.
+> **This is a beta with real permissions.** A fresh install starts in read-only mode with only browse, search, read and metadata capabilities enabled. File mutation, command execution, screen/control and clipboard capabilities require explicit opt-in. Multi-agent mode starts on with two workers, but unattributed calls are blocked until you explicitly allow them. Review folder access and permissions before connecting: `exec_command`, if enabled, runs programs as your logged-in user.
 
 ## Requirements
 
@@ -89,7 +89,7 @@ Use a normal ChatGPT conversation with the custom app enabled. OpenAI's built-in
 1. Install the build for your CPU and open Chat On Steroids. It lives in the tray or menu bar.
 2. Open **Settings → Workspace**, review permissions and approve a project folder. Press **Add**, or drop the folder onto the Folders card.
 3. Create an OpenAI Secure MCP Tunnel and a restricted API key, then press **Connect**. Details below.
-4. In ChatGPT on the web, enable Developer mode and create the **Core** app from the tunnel. On Windows, create the **Desktop** app too if you left screen and input control on; on macOS, if you switched them on.
+4. In ChatGPT on the web, enable Developer mode and create the **Core** app from the tunnel. Create the **Desktop** app only after you explicitly enable screen, input or clipboard capabilities.
 5. Press **Open extension folder**, open `chrome://extensions`, enable Developer mode, choose **Load unpacked** and select that folder. Pairing is automatic.
 
 **Settings → Setup** marks each hop done only once the app has actually seen traffic on it. Back in chat, select a project and model, write a message, or choose **Create plan** from the gear. Images can be attached or dropped into the composer.
