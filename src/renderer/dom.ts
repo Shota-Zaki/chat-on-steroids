@@ -1,4 +1,5 @@
-import { installJapaneseUi, translateUiText } from './ja.js';
+import { translateUiText } from './ja.js';
+import { installJapaneseUi } from './ja-ui.js';
 
 /**
  * The handful of DOM helpers both panels need.
