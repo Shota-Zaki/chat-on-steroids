@@ -201,8 +201,12 @@ setFinishNotifier((title, body, sessionId, turnId) => {
     const open = (): void => { if (!target.isDestroyed()) target.send('session:write', sessionId); };
     if (target.isLoadingMainFrame()) target.once('did-finish-load', open); else open();
   };
-  const notice = new Notification({ title, body, actions: [
-    { type: 'button', text: 'Send Automatic Goal' }, { type: 'button', text: 'Write Directly' }
+  const localizedTitle = title === 'Astra is wrapping up' ? 'Astraが完了に近づいています' : title;
+  const localizedBody = body === 'Send an automatic Goal or write your next instruction.'
+    ? '自動Goalを送信するか、次の指示を直接入力してください。'
+    : body;
+  const notice = new Notification({ title: localizedTitle, body: localizedBody, actions: [
+    { type: 'button', text: '自動Goalを送信' }, { type: 'button', text: '直接入力' }
   ] });
   notice.on('click', write);
   notice.on('action', (details) => {
@@ -241,21 +245,21 @@ function refreshTray(): void {
   const offline = state === 'offline';
   // Offline keeps the running icon: the bridge is up, the internet is not.
   const running = connected || offline;
-  const label = connected ? 'Connected' : offline ? 'No internet' : 'Not connected';
+  const label = connected ? '接続済み' : offline ? 'インターネット接続なし' : '未接続';
   tray.setImage(trayIcon(running));
-  tray.setToolTip(`Chat On Steroids — ${label.toLowerCase()}`);
+  tray.setToolTip(`Chat On Steroids — ${label}`);
   tray.setContextMenu(
     Menu.buildFromTemplate([
       { label, enabled: false },
       { type: 'separator' },
-      { label: 'Open', click: windowActivation.request },
+      { label: '開く', click: windowActivation.request },
       {
-        label: running ? 'Disconnect' : 'Connect',
+        label: running ? '切断' : '接続',
         click: () => void (running ? disconnect() : connect())
       },
       { type: 'separator' },
       {
-        label: 'Quit',
+        label: '終了',
         click: () => {
           quitting = true;
           app.quit();
