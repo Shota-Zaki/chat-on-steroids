@@ -4,47 +4,47 @@ Repository: `Shota-Zaki/chat-on-steroids`
 
 Upstream: `totec448-spec/chat-on-steroids`
 
-Audit baseline: upstream-equivalent fork commit `0f3ec7532b7d598275bf6ebf8f842495d8ab9284`
+Audit Baseline: upstreamと同一だったFork Commit `0f3ec7532b7d598275bf6ebf8f842495d8ab9284`
 
-Working branch: `work`
+Working Branch: `work`
 
-## Status
+## 状態
 
-This document records a static security review and the hardening changes applied to the personal fork.
+このDocumentは、個人用Hardened Forkに対して実施したStatic Security ReviewとHardening変更を記録します。
 
-**Runtime verification is not complete.** GitHub Actions had not produced a run for the fork's `work` branch / draft PR during this audit, and `npm run verify` was therefore not observed passing. Do not treat this document as a runtime certification.
+**Runtime Verificationは未完了です。** このAudit中、Forkの`work` Branch / Draft PRに対するGitHub Actions Runを確認できず、`npm run verify`のPassも観測していません。本DocumentをRuntime Certificationとして扱わないでください。
 
-## Executive summary
+## 要約
 
-Two fork-specific security problems were fixed:
+Fork固有の重大な問題を2件修正しました。
 
-1. Fresh installs inherited powerful mutation, command and desktop permissions by default.
-2. Runtime update/recovery links trusted the upstream repository, so a hardened fork build could later replace or redirect itself back to upstream artifacts.
+1. Fresh InstallでFile変更、Command、Desktop等の強力なPermissionが広く有効だった。
+2. Runtime Update / Recovery Linkがupstream RepositoryをTrustしており、Hardened Fork Buildが将来upstream Artifactへ置換される可能性があった。
 
-The existing upstream implementation already contains substantial defensive controls around filesystem containment, MCP transport authentication, secret storage, renderer isolation, update checksums and permission revocation. Those controls were preserved.
+upstream実装には、File System Containment、MCP Transport Authentication、Secret Storage、Renderer Isolation、Update Checksum、Permission Revocationなど多くの防御が既に実装されており、これらは維持しています。
 
-No deliberate malware, credential exfiltration path, remote shell backdoor or hidden privilege-elevation mechanism was identified in the reviewed paths. This is not proof that none exists outside the reviewed paths.
+確認した範囲では、意図的なMalware、Credential Exfiltration、Remote Shell Backdoor、Hidden Privilege Elevationは確認されませんでした。ただし、未確認範囲を含め「存在しない」ことを証明するものではありません。
 
-## Fixed — H-01: permissive fresh-install authority
+## 修正済み — H-01: Fresh Installの権限が広すぎる
 
-### Previous behavior
+### 修正前
 
-A new config enabled the portable capability set broadly, enabled Windows Desktop capabilities, started with `readOnly = false`, and permitted unattributed multi-agent calls.
+新規ConfigではPortable Capabilityが広くON、Windows Desktop CapabilityもON、`readOnly = false`、Unattributed Multi-agent Callも許可されていました。
 
-That meant first-launch authority was broader than necessary before the user had made an explicit permission decision.
+Userが明示的にPermissionを選ぶ前からFirst Launch Authorityが広すぎる状態でした。
 
-### Hardened behavior
+### 修正後
 
-Fresh installs now:
+Fresh Installは次の状態で開始します。
 
-- start with `readOnly = true`;
-- use the existing conservative `DEFAULT_CAPABILITIES` baseline;
-- enable only browse, search, read and metadata capabilities;
-- leave create, edit, move, delete, command, screen, control and clipboard capabilities off;
-- keep multi-agent available with two workers, but start `allowUnattributedCalls = false`;
-- preserve existing users' explicit stored choices during migration.
+- `readOnly = true`
+- 既存の保守的な`DEFAULT_CAPABILITIES`を利用
+- browse / search / read / metadataのみON
+- create / edit / move / delete / command / screen / control / clipboardはOFF
+- Multi-agentはWorker 2つで利用可能だが、`allowUnattributedCalls = false`
+- Migrationでは既存Userの明示的な保存済み選択を維持
 
-### Files
+### 対象File
 
 - `src/main/config.ts`
 - `test/config.test.ts`
@@ -53,28 +53,28 @@ Fresh installs now:
 - `SECURITY.md`
 - `AGENTS.override.md`
 
-## Fixed — H-02: hardened fork could update back to upstream
+## 修正済み — H-02: Hardened Forkがupstreamへ自動Updateされる
 
-### Previous behavior
+### 修正前
 
-The following runtime paths were hard-coded to `totec448-spec/chat-on-steroids`:
+以下のRuntime Pathが`totec448-spec/chat-on-steroids`へHard-codeされていました。
 
-- automatic update release API;
-- automatic installer/AppImage asset downloads;
-- companion-extension recovery download;
-- manual release page link.
+- Automatic Update Release API
+- Installer / AppImage Download
+- Companion Extension Recovery Download
+- Manual Release Page
 
-A binary built from the hardened fork could therefore later consume an upstream release and lose fork-specific security changes.
+そのためHardened ForkからBuildしたBinaryでも、後からupstream Releaseを取得しFork固有Security変更を失う可能性がありました。
 
-### Hardened behavior
+### 修正後
 
-All runtime release trust is centralized in `src/shared/release.ts` and points to:
+Runtime Release Trustを`src/shared/release.ts`へ一本化し、次を正本にしました。
 
 `Shota-Zaki/chat-on-steroids`
 
-There is deliberately no automatic fallback to upstream. If the hardened fork has no usable release, the current installation remains in place rather than replacing itself from a different trust source.
+upstreamへのAutomatic Fallbackは意図的に実装していません。Hardened Fork側に利用可能なReleaseがない場合、別Trust Sourceから置換せず現在Versionを維持します。
 
-### Files
+### 対象File
 
 - `src/shared/release.ts`
 - `src/main/update.ts`
@@ -82,181 +82,210 @@ There is deliberately no automatic fallback to upstream. If the hardened fork ha
 - `src/shared/types.ts`
 - `test/hardened-release-source.test.ts`
 
-## Verified existing controls
+## 修正済み — H-03: 利用者向けUIの日本語化
 
-### Filesystem boundary
+Personal Forkの利用者向け表示を日本語へ統一しました。
+
+### 日本語化対象
+
+- Desktop RendererのNavigation / Setup / Settings / Usage / Permission / Toast / Status
+- OS Native Tray Menu / Status / Finish Notification
+- Chrome Extension Manifestの表示名・説明
+- Chrome Extension Popup
+- ExtensionがChatGPTへ追加する独自UI
+- README / SECURITY / Fork固有運用Document
+
+### 翻訳しない境界
+
+正確性・互換性を維持するため以下は原文を保持します。
+
+- User / Assistant Conversation本文
+- Handoff / Task本文
+- Folder名、Model名
+- Tool引数・Tool Result本文
+- Diagnostic Log
+- `exec_command` / `write_stdin` / `session_finish`等のTool名
+- API / IPC Identifier、Error Code、Protocol Field
+- Model ID / Provider ID
+- `NO_REPLY`等の機械契約
+- ChatGPTへCopyする完全一致Contract Text
+
+Regressionとして`test/japanese-ui.test.ts`を追加し、日本語化対象と保護対象の両方を固定しています。
+
+## 確認済みの既存Security Control
+
+### File System Boundary
 
 `src/main/sandbox.ts`:
 
-- maps model-facing paths through approved virtual roots;
-- canonicalizes real paths before containment decisions;
-- rejects `..`, null bytes, control characters and unsafe Windows path forms;
-- rejects Windows device names and alternate-data-stream syntax;
-- checks the deepest existing parent before creating a missing path;
-- detects symlink/junction escapes from approved roots;
-- detects replacement of an approved root with a different reparse target.
+- Model-facing PathをApproved Virtual Rootから解決
+- Containment判断前にReal PathをCanonicalize
+- `..`、Null Byte、Control Character、不正Windows Pathを拒否
+- Windows Device Name / Alternate Data Stream Syntaxを拒否
+- Missing Path作成前に最深Existing Parentを検証
+- Symlink / JunctionによるApproved Root Escapeを検出
+- Approved Root自体が別Reparse Targetへ差し替えられた場合も検出
 
-This is application-level containment, not a kernel/VM sandbox. Same-user filesystem races remain a stated limitation.
+これはApplication-level ContainmentでありKernel / VM Sandboxではありません。同一User権限のFile System Raceは残る制約です。
 
-### Command execution
+### Command実行
 
-`exec_command` is intentionally powerful and is **not** confined to approved folders.
+`exec_command`は意図的に強力で、Approved Folder内へSandboxされません。
 
-Reviewed execution code:
+確認した実装では:
 
-- does not request elevation;
-- uses direct process spawning for non-shell execution paths;
-- bounds execution/output behavior;
-- removes known OpenAI/Cloudflare control-plane secrets from inherited child environments.
+- Elevationを要求しない
+- Non-shell PathではDirect Process Spawnを使用
+- Execution / OutputをBound
+- Child Environmentから既知のOpenAI / Cloudflare Control-plane Secretを除去
 
-Because arbitrary commands run as the logged-in OS user, keeping `command` disabled by default is the primary safety boundary.
+任意CommandがLogged-in OS User権限で実行されるため、`command`初期OFFが主要なSafety Boundaryです。
 
-### MCP transport
+### MCP Transport
 
 `src/main/mcp/server.ts`:
 
-- binds to `127.0.0.1`;
-- creates separate random 32-byte secret paths for Core and Desktop surfaces;
-- validates Host and Origin;
-- limits request bodies;
-- keeps surface tokens out of logs;
-- rechecks live capabilities even when ChatGPT has cached an older tools list.
+- `127.0.0.1`へBind
+- Core / Desktopで別々のRandom 32-byte Secret Pathを生成
+- Host / Originを検証
+- Request BodyをSize Limit
+- Surface TokenをLogへ出さない
+- ChatGPTが古いTool ListをCacheしていてもLive Capabilityを再確認
 
-### Desktop control
+### Desktop Control
 
-Desktop automation is a separate MCP surface.
+Desktop Automationは独立したMCP Surfaceです。
 
-- `observe` and mutating `computer` actions are capability-gated;
-- disabling a live permission causes cached tools to return `TOOL_DISABLED` rather than execute;
-- browser tab/window keyboard chords are explicitly refused to reduce the risk of closing or steering ChatGPT worker/prime tabs.
+- `observe` / mutating `computer` ActionをCapability Gate
+- Live PermissionをOFFにするとCache済みToolも`TOOL_DISABLED`で拒否
+- ChatGPT Worker / Prime Tabを誤操作しにくくするためBrowser Tab / Window Keyboard Chordを明示的に拒否
 
-Desktop authority remains desktop-wide once enabled; it is not folder-scoped.
+Desktop Authorityは有効化後Desktop全体に作用し、Folder Scopeではありません。
 
-### Renderer / Electron boundary
+### Renderer / Electron Boundary
 
-The main application window uses:
+Main Windowは以下を使用します。
 
-- `contextIsolation: true`;
-- `nodeIntegration: false`;
-- `sandbox: true`;
-- `webviewTag: false`;
-- `webSecurity: true`;
-- a restrictive Content Security Policy;
-- global navigation and redirect denial;
-- `window.open` denial;
-- a default-deny Electron permission request handler.
+- `contextIsolation: true`
+- `nodeIntegration: false`
+- `sandbox: true`
+- `webviewTag: false`
+- `webSecurity: true`
+- Restrictive CSP
+- Navigation / RedirectのGlobal Deny
+- `window.open` Deny
+- Electron Permission RequestのDefault Deny
 
-The app renderer loads local application content rather than arbitrary remote web content.
+Rendererは任意Remote Web ContentではなくLocal Application Contentを読み込みます。
 
-### Secret storage
+### Secret Storage
 
-`src/main/secrets.ts` uses Electron asynchronous `safeStorage`.
+`src/main/secrets.ts`はElectron Async `safeStorage`を使用します。
 
-- Windows: OS-backed protection via DPAPI.
-- macOS: Keychain-backed protection.
-- Linux: insecure Chromium `basic_text` / `v10` fallback is explicitly rejected.
-- secret writes use a temporary file and rename boundary;
-- mutations are serialized;
-- malformed or temporarily undecryptable storage is not treated as permission to overwrite the encrypted store.
+- Windows: DPAPI
+- macOS: Keychain
+- Linux: ChromiumのInsecure `basic_text` / `v10` Fallbackを明示的に拒否
+- Temporary File + RenameでSecret Write
+- MutationをSerialize
+- Malformed / Temporarily UndecryptableなStoreを空の権威あるStoreとして上書きしない
 
-### External native binaries
+### External Native Binary
 
-Packaging pins and checksum-verifies native external assets.
+PackagingはExternal Native AssetをVersion Pin + SHA-256 Verifyします。
 
-At audit time:
+Audit時点:
 
-- OpenAI `tunnel-client` pin: `v0.0.14`, matching the current upstream release observed during audit;
-- ripgrep pin: `15.2.0`, matching the current upstream release observed during audit;
-- each supported OS/architecture target has a pinned SHA-256.
+- OpenAI `Tunnel Client`: `v0.0.14`
+- ripgrep: `15.2.0`
+- 対応OS / ArchitectureごとにSHA-256固定
 
-The release workflow also pins major GitHub Actions by commit SHA.
+Release Workflowの主要GitHub ActionもCommit SHA固定です。
 
-## Residual risks / follow-up
+## 残存Risk / Follow-up
 
-### R-01 — Browser bridge trusts the logged-in-user boundary
+### R-01 — Browser BridgeはLogged-in User BoundaryをTrust
 
-Severity: **Medium / design trade-off**
+Severity: **Medium / Design Trade-off**
 
-The browser bridge is loopback-only and authenticated after pairing, but first pairing intentionally allows a requester on localhost to obtain a bridge token. The Origin policy accepts Chrome extension origins and requests without an Origin header.
+Browser BridgeはLoopback-onlyでPairing後はAuthenticationされますが、初回Pairingはlocalhost RequesterへBridge Tokenを発行するDesignです。Origin PolicyはChrome Extension OriginとOrigin HeaderなしのLocal Requestを許可します。
 
-Consequences are narrower than MCP authority: the bridge does not expose filesystem, command or permission-mutation routes. However, a malicious process already running as the same OS user, or a sufficiently privileged malicious browser extension, may interact with browser/session automation surfaces.
+MCP Authorityより範囲は狭く、BridgeにはFile / Command / Permission Mutation Routeがありません。ただし、同一OS Userとして既に実行中のMalicious Processや十分なPrivilegeを持つMalicious ExtensionはBrowser / Session Automation Surfaceへ作用できる可能性があります。
 
-The upstream design explicitly treats same-user local processes as inside this bridge trust boundary.
+**Follow-up候補:** より強いLocal Separationが必要ならSilent First Pairingを明示User Approval / One-time Pairing Secretへ変更する。Fixed HeaderやPublic Extension IDだけをAuthenticationとして扱わない。
 
-**Follow-up option:** replace silent first pairing with explicit user approval / a one-time pairing secret if stronger local separation is required. Do not implement a weak fixed header or public extension ID and call it authentication.
+### R-02 — Detailed Session Historyは`safeStorage`暗号化対象外
 
-### R-02 — Detailed session history is not encrypted by `safeStorage`
+Severity: **Medium / Privacy**
 
-Severity: **Medium / privacy**
+Session RecordingはTimeline、Compact & Resume、Agent AttributionのためFresh InstallでONです。Durable Transcript / Tool HistoryはLocal保存ですがCredential Storeと同じEncryption Boundaryではありません。
 
-Session recording is on by default and enables timeline, Compact & Resume and agent attribution. The durable transcript/tool history is local but is not protected with the credential-store encryption boundary.
+OS AccountへAccessできるProcess / Personから記録Sessionを読まれる可能性があります。
 
-A process or person with access to the user's OS account may be able to read recorded sessions.
+### R-03 — Release ArtifactがUnsigned / Unnotarized
 
-### R-03 — Unsigned / unnotarized release artifacts
+Severity: **Medium / Supply-chain Assurance**
 
-Severity: **Medium / supply-chain assurance**
+Windows ReleaseはPublisher署名されておらず、macOS ReleaseもNotarizeされていません。SHA-256 VerifyはPublished Manifestに対するIntegrityを確認しますが、Code Signing / Notarization相当のPublisher Identityは提供しません。
 
-Windows release binaries are not publisher-signed and macOS releases are not notarized. SHA-256 verification protects integrity relative to the published release manifest, but does not establish a publisher identity equivalent to code signing/notarization.
+### R-04 — Linux AppImageの`--no-sandbox` Fallback
 
-### R-04 — Linux AppImage may use `--no-sandbox`
+Severity: **Affected HostではMedium**
 
-Severity: **Medium on affected hosts**
+Unprivileged User Namespaceが無効なHostではAppImage Launcherが`--no-sandbox`へFallbackする場合があります。これを避けたいDebian / Ubuntu UserはDEBを推奨します。
 
-The AppImage launcher can fall back to `--no-sandbox` when unprivileged user namespaces are disabled. Debian/Ubuntu users should prefer the DEB when that fallback is undesirable.
+### R-05 — `node-pty 1.2.0-beta.15`のWindows Regression Report
 
-### R-05 — `node-pty 1.2.0-beta.15` has open Windows regression reports
+Severity: **Medium / Reliability。未再現**
 
-Severity: **Medium / reliability, not yet reproduced here**
+Dependencyは`node-pty 1.2.0-beta.15`固定です。2026-08-18に、このBetaでPersistent Windows PTY Sessionが最初のWrite前に終了するというupstream Issueが報告されています。別IssueではConPTY Pipe FailureによりEmbedding Hostが終了する問題も報告されています。
 
-The dependency is pinned to `node-pty 1.2.0-beta.15`. An upstream issue opened 2026-08-18 reports that this specific beta can terminate persistent Windows PTY sessions before the first write, while another open issue reports ConPTY pipe failures that can terminate the embedding host.
-
-References:
+Reference:
 
 - https://github.com/microsoft/node-pty/issues/955
 - https://github.com/microsoft/node-pty/issues/960
 
-This repository uses `node-pty` directly for `tty=true` unified-exec sessions, so the reports are relevant to `write_stdin` / interactive terminal behavior. No downgrade is made in this audit because beta.14 also has an open Windows ConPTY error-handling report and runtime reproduction has not yet been performed against this application.
+本Repositoryは`tty=true` Unified Execで`node-pty`を直接使用するため、`write_stdin` / Interactive Terminalに関連します。beta.14にも別のWindows ConPTY Error Handling Issueがあるため、Runtime再現なしで単純Downgradeはしていません。
 
-### R-06 — Electron patch level can move independently of app releases
+### R-06 — Electron Patch Level
 
-Severity: **Low at audit time**
+Severity: **Audit時点Low**
 
-The project pins Electron `43.4.1`. The Electron security advisories reviewed during this audit targeted older major/minor ranges and did not identify `43.4.1` as affected. Newer Electron 43.x maintenance releases exist and contain additional bug fixes.
+ProjectはElectron `43.4.1`をPinしています。Audit時に確認したSecurity Advisoryでは`43.4.1`をAffectedとするものは確認されませんでした。Electron Updateを行う場合はLockfileを再生成し、RepositoryのNative / Package Verification Matrixを実行してください。
 
-Do not upgrade Electron without regenerating the lockfile and running the repository's full native/package verification matrix.
+## Verification状態
 
-## Verification status
+### 完了
 
-### Completed
+- 修正前にFork / upstream HEAD同一を確認
+- Exact upstream-equivalent Baselineから`work`作成
+- Hardening後のStatic Diff Review
+- 新Security Contractに合わせAdjacent Test更新
+- Hardened Release Source Regression追加
+- Japanese UI Boundary Regression追加
+- README / SECURITYを実際のDefault / 日本語UI方針へ同期
+- MCP / File System / Command / Desktop / Renderer / Secret / Update / Packaging BoundaryをStatic Review
 
-- Fork/upstream HEAD equality verified before modification.
-- `work` branch created from the exact upstream-equivalent baseline.
-- Static diff review performed after hardening changes.
-- Existing adjacent tests updated to encode the new security contract.
-- Dedicated hardened release-source regression added.
-- README and SECURITY documentation aligned with effective defaults.
-- Major MCP, filesystem, command, Desktop, renderer, secret-storage, update and packaging boundaries reviewed statically.
+### 未完了
 
-### Not completed
+- `npm run verify` — **実行成功を未確認**
+- Windows Packaged Smoke — **未実行**
+- macOS Packaged Smoke — **未実行**
+- Linux Packaged Smoke — **未実行**
+- Live MCP / Secure Tunnel Test — **未実行**
+- Live Chrome Extension Pairing / Multi-agent Test — **未実行**
+- `node-pty` Windows Regression再現 — **未実行**
+- 日本語UIのPackaged実画面確認 — **未実行**
 
-- `npm run verify` — **not observed running**.
-- Windows packaged smoke test — **not run**.
-- macOS packaged smoke test — **not run**.
-- Linux packaged smoke test — **not run**.
-- Live MCP / Secure Tunnel test — **not run**.
-- Live Chrome extension pairing / multi-agent test — **not run**.
-- `node-pty` Windows regression reproduction — **not run**.
+Audit時点でForkのDraft PR / `work` Branchに対するGitHub Actions Workflow Runは確認できませんでした。この状態はVerification Blockerであり、Pass / Failの証拠ではありません。
 
-At audit time, GitHub Actions had not produced a workflow run for the fork's draft PR / `work` branch. This is a verification blocker, not evidence that the changes pass or fail.
+## このForkのRelease Gate
 
-## Release gate for this fork
+以下をすべて満たすまでHardened Fork Releaseを公開・Installしないこと。
 
-Do not publish or install a hardened-fork release until all of the following are true:
-
-1. GitHub Actions is enabled for the fork.
-2. `npm run verify` passes on the exact reviewed commit.
-3. Native Windows packaging/smoke checks pass.
-4. `tty=true` + `write_stdin` is exercised on Windows because of the current `node-pty` reports.
-5. The built release publishes `SHA256SUMS.txt` and the installer checksum is independently checked.
-6. The release source regression confirms that update, manual download and extension recovery all remain under `Shota-Zaki/chat-on-steroids`.
+1. ForkでGitHub Actionsを有効化する。
+2. Exact Reviewed Commitで`npm run verify`がPassする。
+3. Native Windows Packaging / SmokeがPassする。
+4. 現在の`node-pty` Reportを考慮し、Windowsで`tty=true` + `write_stdin`を実際に検証する。
+5. Built Releaseが`SHA256SUMS.txt`を公開し、Installer Hashを独立確認する。
+6. Update / Manual Download / Extension Recoveryがすべて`Shota-Zaki/chat-on-steroids`配下であることをRegressionで確認する。
+7. Desktop App / Tray / Notification / Chrome Extension Popup / ChatGPT Overlayの日本語表示をPackaged Buildで確認する。
