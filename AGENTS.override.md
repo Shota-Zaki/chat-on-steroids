@@ -1,46 +1,57 @@
-# Hardened fork overrides
+# Hardened Fork 固有ルール
 
-This repository is the hardened personal fork of `totec448-spec/chat-on-steroids`.
+このRepositoryは `totec448-spec/chat-on-steroids` を基にした個人用Hardened Forkです。
 
-## Source of truth
+## 正本と優先順位
 
-- Read `AGENTS.md` as the upstream architecture and incident-history design record when working in an affected subsystem.
-- The rules in this file override conflicting upstream statements about shipped defaults and local branch policy.
-- Preserve upstream behavior unless a change is required for security hardening, a verified bug, or an explicitly approved fork requirement.
+- 対象Subsystemを変更する前に、upstreamのArchitecture / Incident History正本として `AGENTS.md` を読むこと。
+- 本ファイルの規則は、初期権限・Fork運用・日本語UI・ブランチ方針についてupstreamの記述と競合する場合に優先する。
+- Security Hardening、再現済みBug、明示的に承認されたFork固有要件以外では、upstreamの挙動を不必要に変更しない。
 
-## Branch policy
+## Branch方針
 
-- Use the `work` branch for all implementation, tests, audits, and documentation changes.
-- Do not write directly to `main`.
-- Keep `main` as the reviewed integration baseline.
+- 実装・Test・Audit・Documentationはすべて `work` Branchで行う。
+- `main` へ直接書き込まない。
+- `main` はレビュー済みの統合基準として維持する。
 
-## Hardened fresh-install baseline
+## Hardened Fresh Install基準
 
-Fresh installs must fail safe:
+Fresh InstallはFail Safeを原則とする。
 
-- `readOnly = true`.
-- Only the existing conservative `DEFAULT_CAPABILITIES` baseline is enabled: browse, search, read, and metadata.
-- File mutation, command execution, screen/control, and clipboard capabilities are opt-in.
-- Multi-agent may remain enabled with the upstream worker limit, but `allowUnattributedCalls = false` by default.
-- Never turn a missing, corrupt, or newly introduced setting into permission consent.
-- Existing users' explicit stored permission choices must be preserved during migration unless a separate migration is explicitly approved.
+- `readOnly = true`。
+- 初期ONは既存の保守的な `DEFAULT_CAPABILITIES` のみ: browse / search / read / metadata。
+- File変更、Command実行、Screen / Control、Clipboardは明示的Opt-in。
+- Multi-agentはupstreamのWorker上限で有効でもよいが、`allowUnattributedCalls = false` を初期値とする。
+- 欠損・破損・新規追加されたSettingをPermission Consentとして扱わない。
+- 明示的なMigration承認がない限り、既存Userが保存した権限選択を維持する。
 
-## Security boundaries
+## 日本語UI方針
 
-- `exec_command` is arbitrary code execution as the logged-in OS user and is not contained by approved folders. Treat enabling `command` as a high-risk permission grant.
-- Desktop control is desktop-wide, not folder-scoped. Keep screen, control, and clipboard capabilities off until explicitly enabled.
-- Caller identity is fail-closed. Do not infer identity from active tabs, timing, ordering, model-supplied identifiers, or other heuristics when the extension cannot prove the caller.
-- File tools remain constrained to approved roots, but application path checks are not an OS/kernel sandbox.
-- Tunnel URLs, bridge tokens, API keys, and other credentials must never be logged or committed.
+利用者向け表示は原則として日本語を正本とする。
 
-## Change discipline
+- Desktop Renderer、Setup、Settings、Usage、Toast、OS Native Notification / Tray、Chrome Extension Popup、ExtensionがChatGPTへ追加する独自UIは日本語表示にする。
+- 新しい利用者向け英語文言を追加するときは、同じ変更で日本語表示と回帰Testも追加する。
+- User / Assistantの会話本文、Handoff本文、Task本文、Folder名、Model名、Tool引数・結果、Diagnostic Logは表示の正確性を優先して翻訳しない。
+- `exec_command`、`write_stdin`、`session_finish` などのTool名、API / IPC identifier、Error Code、Protocol field、Model ID、Provider名、`NO_REPLY` などの機械契約は変更しない。
+- ChatGPTへコピーするConnector名・Description等、完全一致が意味を持つContract Textは翻訳レイヤーの対象外とする。
+- 日本語化を理由にModel PromptやProtocol payloadを書き換えない。
 
-For security-sensitive changes:
+## Security境界
 
-1. Reproduce or pin the unsafe behavior with a deterministic regression.
-2. Fix the earliest responsible boundary with the smallest coherent change.
-3. Update existing tests rather than adding duplicate coverage when practical.
-4. Re-run the nearest regression, adjacent boundary tests, and `npm run verify` before declaring the change complete.
-5. Keep README/SECURITY documentation aligned with the effective permission model.
+- `exec_command` はLogged-in OS User権限での任意Code実行であり、Approved FolderにはContainされない。`command` の有効化はHigh Risk Permission Grantとして扱う。
+- Desktop ControlはFolder ScopeではなくDesktop全体に作用する。Screen / Control / Clipboardは明示的に有効化されるまでOFFを維持する。
+- Caller IdentityはFail Closed。ExtensionがCallerを証明できない場合、Active Tab、Timing、Ordering、Model-supplied ID等から推測しない。
+- File ToolはApproved Rootに制約するが、Application-level Path CheckをOS / Kernel Sandboxとして扱わない。
+- Tunnel URL、Bridge Token、API Key等のCredentialをLogやCommitへ含めない。
 
-Do not claim a test or verification passed unless the command actually ran and its result was observed.
+## 変更手順
+
+Security-sensitiveな変更では次を守る。
+
+1. Unsafe Behaviorを再現するか、決定的なRegression Testで固定する。
+2. 最も早いRoot Cause Boundaryを、必要最小限で一貫した変更として修正する。
+3. 可能なら重複Testを増やさず既存Testを更新する。
+4. 最寄りのRegression、隣接Boundary Test、`npm run verify` を実行してから完了扱いする。
+5. README / SECURITY等の利用者向け文書を実際のPermission Modelと一致させる。
+
+実際にCommandを実行して結果を確認していないTest / Verificationを「Pass」と報告しない。
