@@ -130,15 +130,21 @@
     '[data-clf-composer]', '[data-clf-menu]', '[data-clf-field]', '[data-clf-label]',
     '[class^="clf-"]', '[class*=" clf-"]'
   ].join(',');
+  const protectedSelector = [
+    'script', 'style', 'code', 'pre', 'textarea',
+    '.clf-stream-text', '.clf-stream-tool-panel', '.clf-stream-tool-change',
+    '.clf-tool-detail', '.clf-boot-preview', '.clf-stage-detail'
+  ].join(',');
   const popup = location.protocol === 'chrome-extension:';
   if (popup) document.documentElement.lang = 'ja';
 
   const owned = element => popup || element.matches(ownedSelector) || Boolean(element.closest(ownedSelector));
+  const protectedNode = element => !popup && Boolean(element.closest(protectedSelector));
   const attrs = ['title', 'aria-label', 'placeholder'];
 
   const text = node => {
     const parent = node.parentElement;
-    if (!parent || !owned(parent) || parent.matches('script, style, code, pre, textarea')) return;
+    if (!parent || !owned(parent) || protectedNode(parent) || parent.matches('script, style, code, pre, textarea')) return;
     const current = node.data;
     const translated = translate(current);
     if (translated === current) return;
@@ -148,7 +154,7 @@
   };
 
   const element = root => {
-    if (!(root instanceof Element) || !owned(root)) return;
+    if (!(root instanceof Element) || !owned(root) || protectedNode(root)) return;
     if (root.matches('script, style, code, pre, textarea')) return;
     for (const attr of attrs) {
       const current = root.getAttribute(attr);
