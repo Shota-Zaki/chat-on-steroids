@@ -1,4 +1,5 @@
 import type { ReasoningEffort } from './session.js';
+export { RELEASES_PAGE } from './release.js';
 /** Types shared between the main process and the renderer. No runtime logic here. */
 
 /**
@@ -456,9 +457,6 @@ export interface UpdateStatus {
   /** When the release API last answered, as epoch ms. Null until it has. */
   checkedAt: number | null;
 }
-
-/** Where an installation that cannot update itself gets the new version by hand. */
-export const RELEASES_PAGE = 'https://github.com/totec448-spec/chat-on-steroids/releases/latest';
 
 /**
  * Whether `candidate` is a later release than `current`, compared as three numbers.
