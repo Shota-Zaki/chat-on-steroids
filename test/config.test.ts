@@ -10,7 +10,7 @@ import {
   saveConfig,
   updateConfig
 } from '../src/main/config.js';
-import { DESKTOP_CAPABILITIES, type Capability } from '../src/shared/types.js';
+import { DEFAULT_CAPABILITIES } from '../src/shared/types.js';
 import { makeTempDir, removeTempDir } from './helpers.js';
 
 let dir: string;
@@ -313,38 +313,29 @@ describe('settings migration', () => {
 
 /** Fresh-install defaults, while migrations above prove existing choices stay narrow. */
 describe('shipped defaults', () => {
-  // Windows alone starts the Desktop group on. macOS has the backend but starts it off; the
-  // user switches it on and grants Screen Recording / Accessibility. Linux has no backend.
-  const expectedFreshCapability = (capability: Capability, platform: NodeJS.Platform): boolean =>
-    platform === 'win32' || !DESKTOP_CAPABILITIES.includes(capability);
-
   it('records sessions from first launch', () => {
     expect(defaultConfig().sessions.record).toBe(true);
   });
 
-  it('loads a genuinely missing config with every portable Core capability enabled', async () => {
+  it('loads a genuinely missing config with the conservative capability baseline', async () => {
     await fs.rm(path.join(dir, 'config.json'), { force: true });
     const loaded = await loadConfig();
-    expect(loaded.readOnly).toBe(false);
-    for (const [capability, enabled] of Object.entries(loaded.capabilities) as Array<[Capability, boolean]>) {
-      expect(enabled, capability).toBe(expectedFreshCapability(capability, process.platform));
-    }
+    expect(loaded.readOnly).toBe(true);
+    expect(loaded.capabilities).toEqual(DEFAULT_CAPABILITIES);
     expect(loaded.multiAgent.enabled).toBe(true);
-    expect(loaded.multiAgent.allowUnattributedCalls).toBe(true);
+    expect(loaded.multiAgent.allowUnattributedCalls).toBe(false);
     expect(loaded.multiAgent.recoverAgentTabs).toBe(false);
   });
 
   it.each(['win32', 'darwin', 'linux'] as const)(
-    'starts portable permissions on and Desktop automation on Windows only on %s',
+    'starts read-only with safe capabilities and attributed agent calls on %s',
     (platform) => {
       const config = defaultConfig(platform);
-      expect(config.readOnly).toBe(false);
-      for (const [capability, enabled] of Object.entries(config.capabilities) as Array<[Capability, boolean]>) {
-        expect(enabled, `${platform}:${capability}`).toBe(expectedFreshCapability(capability, platform));
-      }
+      expect(config.readOnly).toBe(true);
+      expect(config.capabilities).toEqual(DEFAULT_CAPABILITIES);
       expect(config.multiAgent.enabled).toBe(true);
       expect(config.multiAgent.maxWorkers).toBe(2);
-      expect(config.multiAgent.allowUnattributedCalls).toBe(true);
+      expect(config.multiAgent.allowUnattributedCalls).toBe(false);
       expect(config.multiAgent.recoverAgentTabs).toBe(false);
     }
   );
@@ -395,25 +386,24 @@ describe('shipped defaults', () => {
   });
 
   /**
-   * Save, close, reopen. The unattributed switch is on out of the box, so the only way to
-   * see it off is to have turned it off — and that choice has to survive the next launch
-   * rather than being handed back the fresh-install default on load.
+   * The hardened fresh-install answer is off. Either explicit choice still has to survive
+   * save and reload rather than being replaced by the current default.
    */
   it('keeps either unattributed choice across a save and reload', async () => {
     const config = defaultConfig();
-    expect(config.multiAgent.allowUnattributedCalls).toBe(true);
-
-    await saveConfig({
-      ...config,
-      multiAgent: { ...config.multiAgent, allowUnattributedCalls: false }
-    });
-    expect((await loadConfig()).multiAgent.allowUnattributedCalls).toBe(false);
+    expect(config.multiAgent.allowUnattributedCalls).toBe(false);
 
     await saveConfig({
       ...config,
       multiAgent: { ...config.multiAgent, allowUnattributedCalls: true }
     });
     expect((await loadConfig()).multiAgent.allowUnattributedCalls).toBe(true);
+
+    await saveConfig({
+      ...config,
+      multiAgent: { ...config.multiAgent, allowUnattributedCalls: false }
+    });
+    expect((await loadConfig()).multiAgent.allowUnattributedCalls).toBe(false);
   });
 });
 
