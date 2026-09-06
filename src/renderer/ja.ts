@@ -1,0 +1,418 @@
+const exactEntries: Array<[string, string]> = [
+  ['Back to chat', 'チャットに戻る'],
+  ['New chat', '新しいチャット'],
+  ['Settings navigation', '設定ナビゲーション'],
+  ['Workspace', 'ワークスペース'],
+  ['Usage', '使用状況'],
+  ['Setup', 'セットアップ'],
+  ['Agents & automation', 'エージェントと自動化'],
+  ['Activity', 'アクティビティ'],
+  ['Conversations', '会話'],
+  ['Add a project folder', 'プロジェクトフォルダーを追加'],
+  ['Refresh', '更新'],
+  ['Settings', '設定'],
+  ['Zoom out', '縮小'],
+  ['Reset zoom', 'ズームをリセット'],
+  ['Zoom in', '拡大'],
+  ['Not set up yet', '未セットアップ'],
+  ['Switch to dark mode', 'ダークモードに切り替え'],
+  ['Switch to light mode', 'ライトモードに切り替え'],
+  ['Install update', 'アップデートをインストール'],
+  ['Not connected', '未接続'],
+  ['Connected', '接続済み'],
+  ['Connect', '接続'],
+  ['Disconnect', '切断'],
+  ['Get it', '入手'],
+  ['Install now', '今すぐインストール'],
+  ['YOUR ACTIVITY', 'アクティビティ'],
+  ['Calculating recorded tool usage…', '記録済みツール使用量を集計しています…'],
+  ['Updating…', '更新しています…'],
+  ['Token activity per day', '日ごとのトークン使用量'],
+  ['Estimated context processed per tool call · last 52 weeks', 'ツール呼び出しごとの推定処理コンテキスト · 過去52週間'],
+  ['Cost estimate per day', '日ごとのコスト見積もり'],
+  ['Edit cost formula', 'コスト計算式を編集'],
+  ['Context times unique tool calls, divided by', 'コンテキスト × 一意なツール呼び出し数 ÷'],
+  ['Changes estimated tokens and costs.', '推定トークン数とコストに反映されます。'],
+  ['Cached-input cost multiplier', 'キャッシュ入力コスト倍率'],
+  ["Applied after each model's cached-input rate.", '各モデルのキャッシュ入力単価に適用します。'],
+  ['Set per-model cached-input rates to compare costs.', 'モデルごとのキャッシュ入力単価を設定するとコストを比較できます。'],
+  ['Remaining usage per model', 'モデル別の残り使用量'],
+  ['Refresh needed', '更新が必要'],
+  ['Not reported', '未報告'],
+  ['Not reported by ChatGPT', 'ChatGPTから未報告'],
+  ['Shared usage pool', '共有使用量プール'],
+  ['Feature quota', '機能クォータ'],
+  ['Reset not reported', 'リセット時刻は未報告'],
+  ['Deep research', 'Deep Research'],
+  ['File uploads', 'ファイルアップロード'],
+  ['Pasted text files', '貼り付けテキストファイル'],
+  ['Image generation', '画像生成'],
+  ['Processed tokens · est.', '処理トークン · 推定'],
+  ['Peak daily tokens', '1日の最大トークン'],
+  ['Active days', '利用日数'],
+  ['Estimated equivalent · USD', '推定相当額 · USD'],
+  ['Estimated tokens', '推定トークン'],
+  ['Estimated equivalent', '推定相当額'],
+  ['Recorded model / effort', '記録済みモデル / 推論レベル'],
+  ['Day', '日付'],
+  ['Rate unknown', '単価不明'],
+  ['Unknown rate', '単価不明'],
+  ['effort unknown', '推論レベル不明'],
+  ['assumed', '推定'],
+  ['No recorded tool calls yet.', '記録済みのツール呼び出しはまだありません。'],
+  ['Permissions', '権限'],
+  ['Read-only', '読み取り専用'],
+  ['Desktop access needs attention', 'デスクトップアクセスの確認が必要'],
+  ['Request Accessibility', 'アクセシビリティ権限を要求'],
+  ['Open Screen Recording settings', '画面収録設定を開く'],
+  ['Open Accessibility settings', 'アクセシビリティ設定を開く'],
+  ['Folders', 'フォルダー'],
+  ['Add', '追加'],
+  ['Health', '接続状態'],
+  ['Run checks', 'チェックを実行'],
+  ['verified link', '検証済みリンク'],
+  ['last ChatGPT call', '最終ChatGPT呼び出し'],
+  ['Copy', 'コピー'],
+  ['Connect your workspace to ChatGPT.', 'ワークスペースをChatGPTへ接続します。'],
+  ['Show all steps', 'すべての手順を表示'],
+  ['Pick a folder to share', '共有するフォルダーを選択'],
+  ['Choose folder', 'フォルダーを選択'],
+  ['Manage folders', 'フォルダーを管理'],
+  ['None yet', 'まだありません'],
+  ['Create a tunnel', 'Tunnelを作成'],
+  ['Open Tunnels', 'Tunnelsを開く'],
+  ['Tunnel ID — Core connector', 'Tunnel ID — Coreコネクタ'],
+  ['Tunnel ID — Desktop connector', 'Tunnel ID — Desktopコネクタ'],
+  ['optional', '任意'],
+  ['Create an API key', 'APIキーを作成'],
+  ['Open API keys', 'APIキー設定を開く'],
+  ['Tunnel API key', 'Tunnel APIキー'],
+  ['Remove stored API key', '保存済みAPIキーを削除'],
+  ['Start the tunnel', 'Tunnelを起動'],
+  ['Add it in ChatGPT', 'ChatGPTに追加'],
+  ['Before you start: choose “Allow all actions”', '開始前に「Allow all actions（すべてのアクションを許可）」を選択'],
+  ['Open Apps', 'Appsを開く'],
+  ['Add the Chrome extension', 'Chrome拡張機能を追加'],
+  ['Open extension folder', '拡張機能フォルダーを開く'],
+  ['Download extension ZIP', '拡張機能ZIPをダウンロード'],
+  ['Disconnect browser', 'ブラウザ接続を解除'],
+  ['Advanced — method, program, startup', '詳細設定 — 接続方式・プログラム・起動'],
+  ['Method', '接続方式'],
+  ['OpenAI Secure MCP Tunnel (recommended)', 'OpenAI Secure MCP Tunnel（推奨）'],
+  ['Cloudflare quick tunnel', 'Cloudflare Quick Tunnel'],
+  ['Local only — I run my own tunnel', 'ローカルのみ — 自分のTunnelを使用'],
+  ['Tunnel program', 'Tunnelプログラム'],
+  ['Bundled with this app', 'アプリに同梱'],
+  ['Browse…', '参照…'],
+  ['Connect automatically at startup', '起動時に自動接続'],
+  ['Keep running when closed', '閉じてもバックグラウンドで実行'],
+  ['Privacy screenshots: default to the active window instead of the whole monitor', 'プライバシースクリーンショット: モニター全体ではなくアクティブウィンドウを既定にする'],
+  ['Developer mode: show turn boundaries and recovery events', '開発者モード: ターン境界と復旧イベントを表示'],
+  ['Chat settings', 'チャット設定'],
+  ['Timeline', 'タイムライン'],
+  ['Handoff', '引き継ぎ'],
+  ['What would you like to build?', '何を作りますか？'],
+  ['Latest handoff', '最新の引き継ぎ'],
+  ['Fine-tune your workspace and the way your agents work.', 'ワークスペースとエージェントの動作を細かく設定します。'],
+  ['Search settings', '設定を検索'],
+  ['Search settings…', '設定を検索…'],
+  ['No settings match your search.', '検索条件に一致する設定はありません。'],
+  ['Continuation sources', '継続処理の生成元'],
+  ['Goal response source', 'Goal応答の生成元'],
+  ['Loop response source', 'Loop応答の生成元'],
+  ['API key · Most reliable', 'APIキー · 最も安定'],
+  ['Separate ChatGPT chat', '別のChatGPTチャット'],
+  ['Offline · No API cost', 'オフライン · API費用なし'],
+  ['Goal, Loop and Plan model', 'Goal・Loop・Planのモデル'],
+  ['Goal, Loop and Plan reasoning', 'Goal・Loop・Planの推論レベル'],
+  ['Include tool details in Goal and handoffs', 'Goalと引き継ぎにツール詳細を含める'],
+  ['Keep the turn open', 'ターンを継続'],
+  ['Plan generation', 'プラン生成'],
+  ['Session finish', 'Session finish（セッション完了）'],
+  ['When ChatGPT is wrapping up', 'ChatGPTが完了に近づいたとき'],
+  ['Notify me · Write or Generate Goal', '通知する · 直接入力またはGoal生成'],
+  ['Generate and inject Goal', 'Goalを生成して注入'],
+  ['Requested notice', '通知タイミング'],
+  ['3 minutes', '3分'],
+  ['5 minutes', '5分'],
+  ['ChatGPT models', 'ChatGPTモデル'],
+  ['Available ChatGPT models', '利用可能なChatGPTモデル'],
+  ['Read model choices from your account.', 'アカウントからモデル候補を読み取ります。'],
+  ['Default sub-agent model', '既定のサブエージェントモデル'],
+  ['Default sub-agent reasoning', '既定のサブエージェント推論レベル'],
+  ['No observed choices', '検出済み候補なし'],
+  ['Browser & history', 'ブラウザと履歴'],
+  ['Background chats', 'バックグラウンドチャット'],
+  ['Overwrite ChatGPT tool rows', 'ChatGPTのツール行を上書き'],
+  ['Show durations in ChatGPT', 'ChatGPTに所要時間を表示'],
+  ['Browser preferences', 'ブラウザ設定'],
+  ["Refresh to read the browser's current preferences.", '更新するとブラウザの現在の設定を読み取ります。'],
+  ['Refresh browser preferences', 'ブラウザ設定を更新'],
+  ['Keep recordings', '記録の保持期間'],
+  ['days', '日'],
+  ['Compact automatically', '自動コンパクト'],
+  ['tokens', 'トークン'],
+  ['API provider', 'APIプロバイダー'],
+  ['OpenRouter API key', 'OpenRouter APIキー'],
+  ['Remove stored key', '保存済みキーを削除'],
+  ['Open OpenRouter keys', 'OpenRouterのキー設定を開く'],
+  ['Model', 'モデル'],
+  ['Select model', 'モデルを選択'],
+  ['Load 20 more', 'さらに20件読み込む'],
+  ['Reasoning', '推論'],
+  ['Default', '標準'],
+  ['Minimal', '最小'],
+  ['Low', '低'],
+  ['Medium', '中'],
+  ['High', '高'],
+  ['Extra high', '非常に高い'],
+  ['Max', '最大'],
+  ['Ultra', 'Ultra'],
+  ['Pro', 'Pro'],
+  ['Instant', 'Instant'],
+  ['Continuation prompts', '継続プロンプト'],
+  ['Goal prompt, no task', 'Goalプロンプト（タスクなし）'],
+  ['Goal prompt, with a task', 'Goalプロンプト（タスクあり）'],
+  ['Loop prompt', 'Loopプロンプト'],
+  ['Edit prompt', 'プロンプトを編集'],
+  ['Restore default', '既定値に戻す'],
+  ['Workers & recovery', 'ワーカーと復旧'],
+  ['Sub-agent workers', 'サブエージェントワーカー'],
+  ['max', '最大'],
+  ['Allow unattributed calls', '出所不明の呼び出しを許可'],
+  ['Recover other chats’ tabs', '他チャットのタブを復旧'],
+  ['Clear swarm', 'Swarmをクリア'],
+  ['Plan stages', 'プランのステージ'],
+  ['Queued tasks', '待機中のタスク'],
+  ['Message ChatGPT', 'ChatGPTへのメッセージ'],
+  ['Ask anything…', '何でも聞いてください…'],
+  ['Add attachments', '添付ファイルを追加'],
+  ['Add images', '画像を追加'],
+  ['Share a folder', 'フォルダーを共有'],
+  ['Chat options', 'チャット設定'],
+  ['Chat mode', 'チャットモード'],
+  ['Off', 'オフ'],
+  ['Chat automation', 'チャット自動化'],
+  ["This chat's goal", 'このチャットの目標'],
+  ['What should this chat achieve?', 'このチャットで達成することは？'],
+  ['Save task', 'タスクを保存'],
+  ['Goal behavior', 'Goalの動作'],
+  ['Goal · stop when complete', 'Goal · 完了したら停止'],
+  ['Loop · keep going', 'Loop · 継続'],
+  ['Create plan', 'プランを作成'],
+  ['Queue at Session finish', 'Session finish時にキューへ追加'],
+  ['Compact & resume', 'コンパクトして再開'],
+  ['Cancel compaction', 'コンパクトをキャンセル'],
+  ['Estimated session context', '推定セッションコンテキスト'],
+  ['Session context · estimated', 'セッションコンテキスト · 推定'],
+  ['Choose a level', '推論レベルを選択'],
+  ['Observed models', '検出済みモデル'],
+  ['Reload ChatGPT models', 'ChatGPTモデルを再読み込み'],
+  ['Reading ChatGPT models', 'ChatGPTモデルを読み込み中'],
+  ['Model and thinking effort', 'モデルと推論レベル'],
+  ['Thinking effort', '推論レベル'],
+  ['Reasoning effort', '推論レベル'],
+  ['Generate Goal', 'Goalを生成'],
+  ['Message delivery', 'メッセージ送信方式'],
+  ['Inject now', '今すぐ注入'],
+  ['After this turn', 'このターンの後'],
+  ['Send', '送信'],
+  ['Send message', 'メッセージを送信'],
+  ['All', 'すべて'],
+  ['Problems', '問題'],
+  ['Text', 'テキスト'],
+  ['Look at files', 'ファイルを参照'],
+  ['Read and search inside the folders you approved.', '承認したフォルダー内を読み取り・検索します。'],
+  ['Change files', 'ファイルを変更'],
+  ['Create, edit, move and delete, inside those folders only.', '承認済みフォルダー内で作成・編集・移動・削除します。'],
+  ['See and use the desktop', 'デスクトップを表示・操作'],
+  ['Screenshots, the list of open windows, and the mouse and keyboard.', 'スクリーンショット、開いているウィンドウ、マウス、キーボードを扱います。'],
+  ['Run programs', 'プログラムを実行'],
+  ['Start commands as you. The most powerful setting here.', 'あなたの権限でコマンドを実行します。最も強力な設定です。'],
+  ['Browse folders', 'フォルダーを参照'],
+  ['Search files', 'ファイルを検索'],
+  ['Read files', 'ファイルを読み取り'],
+  ['File metadata', 'ファイル情報'],
+  ['Create files', 'ファイルを作成'],
+  ['Edit files', 'ファイルを編集'],
+  ['Move / rename', '移動 / 名前変更'],
+  ['Delete files', 'ファイルを削除'],
+  ['Run commands', 'コマンドを実行'],
+  ['See the screen', '画面を表示'],
+  ['Control mouse and keyboard', 'マウスとキーボードを操作'],
+  ['Read clipboard', 'クリップボードを読み取り'],
+  ['Write clipboard', 'クリップボードへ書き込み'],
+  ['List what is inside an approved folder.', '承認済みフォルダーの内容を一覧表示します。'],
+  ['Find files by name or glob, and text inside them.', '名前やglobでファイルを検索し、ファイル内のテキストも検索します。'],
+  ['Read text in ranges, and open local images into vision.', 'テキストを範囲指定で読み取り、ローカル画像をVisionで開きます。'],
+  ['Size, dates and line count, without the contents.', '内容を読まずにサイズ・日時・行数を取得します。'],
+  ['Add new files, and the folders they need.', '新しいファイルと必要なフォルダーを作成します。'],
+  ['Exact edits, applied atomically across files.', '複数ファイルへ正確な編集をアトミックに適用します。'],
+  ['Move or rename, both ends inside approved folders.', '承認済みフォルダー内で移動・名前変更します。'],
+  ['Permanent — there is no Recycle Bin.', '完全削除です。ごみ箱には移動しません。'],
+  ['Run anything as you. NOT limited to approved folders.', 'あなたのユーザー権限で任意の処理を実行します。承認済みフォルダー内には限定されません。'],
+  ['Screenshots, open windows, and the controls on them.', 'スクリーンショット、開いているウィンドウ、その操作部品を取得します。'],
+  ['Moves the pointer, clicks, types and presses keys, as you.', 'あなたの代わりにポインター移動、クリック、入力、キー操作を行います。'],
+  ['Read the current clipboard text.', '現在のクリップボード文字列を読み取ります。'],
+  ['Replace the clipboard without focus or keystrokes.', 'フォーカス移動やキー操作なしでクリップボードを書き換えます。'],
+  ['Sub-agents', 'サブエージェント'],
+  ['Back to sub-agents', 'サブエージェント一覧に戻る'],
+  ['Close sub-agents', 'サブエージェントを閉じる'],
+  ['Active', '稼働中'],
+  ['History', '履歴'],
+  ['No active sub-agents', '稼働中のサブエージェントはありません'],
+  ['No recorded sub-agents', '記録済みのサブエージェントはありません'],
+  ['Loading conversation…', '会話を読み込み中…'],
+  ['Conversation unavailable', '会話を取得できません'],
+  ['Open full chat', 'チャット全体を開く'],
+  ['Waiting for the extension to confirm…', '拡張機能の確認を待っています…'],
+  ['Confirmed by the browser extension.', 'ブラウザ拡張機能で確認済みです。'],
+  ['Unable to reach the extension. Connect it and refresh.', '拡張機能に接続できません。接続してから更新してください。'],
+  ['No supported choices', '対応する候補がありません'],
+  ['Reload models', 'モデルを再読み込み'],
+  ['Previous selection unavailable', '以前の選択は利用できません'],
+  ['Choose an available model and effort', '利用可能なモデルと推論レベルを選択'],
+  ['Loading models…', 'モデルを読み込み中…'],
+  ['Reading your account’s model choices…', 'アカウントのモデル候補を読み取っています…'],
+  ['Connect to ChatGPT to load your models.', 'モデルを読み込むにはChatGPTへ接続してください。'],
+  ['Models unavailable · retry discovery', 'モデルを取得できません · 再検出してください'],
+  ['Multi-agent off. Reconnect the connector in ChatGPT (then start a new chat) to drop the agents tool.', 'マルチエージェントをオフにしました。agentsツールを外すにはChatGPT側のコネクタを再接続し、その後新しいチャットを開始してください。'],
+  ['Tools changed. Start a new ChatGPT conversation to guarantee the new tool list is loaded.', 'ツール構成を変更しました。新しいツール一覧を確実に読み込むには、新しいChatGPT会話を開始してください。'],
+  ['Keep every stage nonempty and the plan below 12,000 characters.', '各ステージを空欄にせず、プラン全体を12,000文字以内にしてください。'],
+  ['Your draft changed; generate a plan from the updated task.', '下書きが変更されています。更新後のタスクからプランを再生成してください。'],
+  ['OpenRouter key removed', 'OpenRouterキーを削除しました'],
+  ['New helper authorized for this chat', 'このチャット用の新しいヘルパーを許可しました'],
+  ['This helper has changed. Refreshing its status.', 'ヘルパーの状態が変わりました。状態を更新します。'],
+  ['Send again to retry, or cancel the plan.', '再試行するにはもう一度送信するか、プランをキャンセルしてください。'],
+  ['never', 'なし'],
+  ['just now', 'たった今'],
+  ['now', '今'],
+  ['Version mismatch', 'バージョン不一致'],
+  ['Disconnected', '切断済み'],
+  ['App not running', 'アプリが起動していません'],
+  ['Try again', '再試行'],
+  ['Waiting', '待機中'],
+  ['Loading', '読み込み中'],
+  ['Ready', '準備完了'],
+  ['Failed', '失敗'],
+  ['Success', '成功']
+];
+
+const exact = new Map(exactEntries.map(([source, target]) => [normalize(source), target]));
+
+function normalize(value: string): string {
+  return value.trim().replace(/\s+/g, ' ');
+}
+
+const dynamic: Array<[RegExp, (...parts: string[]) => string]> = [
+  [/^(\d+)s ago$/, (_all, n) => `${n}秒前`],
+  [/^(\d+)m ago$/, (_all, n) => `${n}分前`],
+  [/^(\d+)h ago$/, (_all, n) => `${n}時間前`],
+  [/^(\d+)s$/, (_all, n) => `${n}秒`],
+  [/^(\d+)m$/, (_all, n) => `${n}分`],
+  [/^(\d+)h$/, (_all, n) => `${n}時間`],
+  [/^(\d+) minutes?$/, (_all, n) => `${n}分`],
+  [/^(\d+) remaining$/, (_all, n) => `残り ${n}`],
+  [/^(\d+)% remaining$/, (_all, n) => `残り ${n}%`],
+  [/^Resets (.+)$/, (_all, value) => `リセット: ${value}`],
+  [/^(\d+)h window · (.+)$/, (_all, n, rest) => `${n}時間枠 · ${translateUiText(rest)}`],
+  [/^(.+) · not verified$/, (_all, value) => `${value} · 未確認`],
+  [/^Available in your ChatGPT account · checked (.+)$/, (_all, value) => `ChatGPTアカウントで利用可能 · 確認 ${value}`],
+  [/^Connected · Port (.+)$/, (_all, value) => `接続済み · ポート ${value}`],
+  [/^Port (.+) · connecting$/, (_all, value) => `ポート ${value} · 接続中`],
+  [/^Sub-agents · (\d+) recorded$/, (_all, n) => `サブエージェント · ${n}件記録`],
+  [/^(Active|History) · (\d+)$/, (_all, label, n) => `${translateUiText(label)} · ${n}`],
+  [/^(\d+) held$/, (_all, n) => `${n}件保留`],
+  [/^(\d+) queued$/, (_all, n) => `${n}件待機`],
+  [/^(\d+) held in page$/, (_all, n) => `ページ内で${n}件保留`],
+  [/^(\d+) events · (\d+) calls$/, (_all, events, calls) => `${events}イベント · ${calls}呼び出し`],
+  [/^(\d+) held · (\d+) total$/, (_all, held, total) => `${held}件保留 · 合計${total}件`],
+  [/^(\d+) · (\d+) failed$/, (_all, total, failed) => `${total}件 · ${failed}件失敗`],
+  [/^v(.+) · protocol (.+)$/, (_all, version, protocol) => `v${version} · プロトコル ${protocol}`],
+  [/^v(.+) · port (.+)$/, (_all, version, port) => `v${version} · ポート ${port}`],
+  [/^(.+) · epoch (.+)$/, (_all, value, epoch) => `${value} · エポック ${epoch}`],
+  [/^(.+) · live$/, (_all, value) => `${value} · 稼働中`],
+  [/^(\d+) events$/, (_all, n) => `${n}イベント`],
+  [/^(\d+) calls$/, (_all, n) => `${n}呼び出し`],
+  [/^(\d+) tokens used$/, (_all, n) => `${n}トークン使用`],
+  [/^Auto-compaction at (.+) tokens$/, (_all, n) => `${n}トークンで自動コンパクト`],
+  [/^Auto-compaction off$/, () => '自動コンパクト: オフ'],
+  [/^Auto-compaction off for Pro$/, () => 'Proでは自動コンパクト: オフ'],
+  [/^(.+) \/ (.+) tokens · (\d+)% of configured limit$/, (_all, used, limit, percent) => `${used} / ${limit}トークン · 設定上限の${percent}%`],
+  [/^(.+): (.+)% remaining$/, (_all, name, percent) => `${name}: 残り${percent}%`],
+  [/^(.+): ([\d,.]+) estimated tokens$/, (_all, date, tokens) => `${date}: 推定${tokens}トークン`],
+  [/^(.+) · (\d+) recorded$/, (_all, label, n) => `${translateUiText(label)} · ${n}件記録`]
+];
+
+export function translateUiText(value: string): string {
+  const normalized = normalize(value);
+  if (!normalized) return value;
+  const mapped = exact.get(normalized);
+  if (mapped) return mapped;
+  for (const [pattern, replacer] of dynamic) {
+    const match = pattern.exec(normalized);
+    if (match) return replacer(...match);
+  }
+  return value;
+}
+
+const ATTRIBUTES = ['title', 'aria-label', 'placeholder'] as const;
+
+function translateTextNode(node: Text): void {
+  const current = node.data;
+  const translated = translateUiText(current);
+  if (translated === current) return;
+  const leading = current.match(/^\s*/)?.[0] ?? '';
+  const trailing = current.match(/\s*$/)?.[0] ?? '';
+  node.data = `${leading}${translated}${trailing}`;
+}
+
+function translateElement(element: Element): void {
+  if (element.matches('script, style, code, pre, textarea')) return;
+  for (const attribute of ATTRIBUTES) {
+    const current = element.getAttribute(attribute);
+    if (!current) continue;
+    const translated = translateUiText(current);
+    if (translated !== current) element.setAttribute(attribute, translated);
+  }
+  for (const child of element.childNodes) {
+    if (child.nodeType === Node.TEXT_NODE) translateTextNode(child as Text);
+    else if (child.nodeType === Node.ELEMENT_NODE) translateElement(child as Element);
+  }
+}
+
+let installed = false;
+
+/**
+ * Japanese presentation only. It never changes form values, conversation text stored by the
+ * app, tool names, protocol identifiers, error codes, prompts, or data sent to ChatGPT.
+ */
+export function installJapaneseUi(): void {
+  if (installed || typeof document === 'undefined') return;
+  installed = true;
+  document.documentElement.lang = 'ja';
+  translateElement(document.documentElement);
+  const observer = new MutationObserver((records) => {
+    for (const record of records) {
+      if (record.type === 'characterData' && record.target.nodeType === Node.TEXT_NODE) {
+        translateTextNode(record.target as Text);
+        continue;
+      }
+      if (record.type === 'attributes' && record.target instanceof Element) {
+        translateElement(record.target);
+        continue;
+      }
+      for (const node of record.addedNodes) {
+        if (node.nodeType === Node.TEXT_NODE) translateTextNode(node as Text);
+        else if (node.nodeType === Node.ELEMENT_NODE) translateElement(node as Element);
+      }
+    }
+  });
+  observer.observe(document.documentElement, {
+    subtree: true,
+    childList: true,
+    characterData: true,
+    attributes: true,
+    attributeFilter: [...ATTRIBUTES]
+  });
+}
