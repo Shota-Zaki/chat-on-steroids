@@ -47,10 +47,8 @@ import { pipeline } from 'node:stream/promises';
 import { app } from 'electron';
 import { logInfo, logWarn } from './logger.js';
 import { APP_VERSION } from './version.js';
+import { LATEST_RELEASE_API, releaseAssetUrl } from '../shared/release.js';
 import { isNewer, type UpdateStatus } from '../shared/types.js';
-
-const REPO = 'totec448-spec/chat-on-steroids';
-const LATEST_RELEASE_API = `https://api.github.com/repos/${REPO}/releases/latest`;
 
 const CHECK_TIMEOUT_MS = 15_000;
 const DOWNLOAD_TIMEOUT_MS = 10 * 60_000;
@@ -272,7 +270,7 @@ async function releaseDigests(version: string): Promise<Map<string, string>> {
 
 /** The url of one release asset. Built here, never taken from a response body. */
 function assetUrl(version: string, name: string): string {
-  return `https://github.com/${REPO}/releases/download/v${encodeURIComponent(version)}/${name}`;
+  return releaseAssetUrl(version, name);
 }
 
 async function get(url: string, timeout: number, headers: Record<string, string> = {}): Promise<Response> {
