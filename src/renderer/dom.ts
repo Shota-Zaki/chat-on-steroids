@@ -1,9 +1,13 @@
+import { installJapaneseUi, translateUiText } from './ja.js';
+
 /**
  * The handful of DOM helpers both panels need.
  *
  * Nothing here knows about app state, and nothing here uses innerHTML — every node is
  * built from text, so a session title or a tool argument can never become markup.
  */
+
+installJapaneseUi();
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -46,7 +50,7 @@ let toastTimer: number | undefined;
 
 export function toast(message: string): void {
   document.querySelector('.toast')?.remove();
-  const node = el('div', 'toast', message);
+  const node = el('div', 'toast', translateUiText(message));
   document.body.append(node);
   window.clearTimeout(toastTimer);
   toastTimer = window.setTimeout(() => node.remove(), 3200);
@@ -64,29 +68,29 @@ export async function run<T>(
   return reply.data;
 }
 
-/** "12s ago" for a timestamp the main process vouched for, "never" for null. */
+/** 「12秒前」 for a timestamp the main process vouched for, 「なし」 for null. */
 export function ago(atMs: number | null): string {
-  if (atMs === null) return 'never';
+  if (atMs === null) return 'なし';
   const seconds = Math.max(0, Math.round((Date.now() - atMs) / 1000));
-  if (seconds < 3) return 'just now';
-  if (seconds < 90) return `${seconds}s ago`;
+  if (seconds < 3) return 'たった今';
+  if (seconds < 90) return `${seconds}秒前`;
   const minutes = Math.round(seconds / 60);
-  return minutes < 90 ? `${minutes}m ago` : `${Math.round(minutes / 60)}h ago`;
+  return minutes < 90 ? `${minutes}分前` : `${Math.round(minutes / 60)}時間前`;
 }
 
-/** The same age as one glanceable token: "8s", "2m", "—" when there is nothing. */
+/** The same age as one glanceable token: 「8秒」, 「2分」, 「—」 when there is nothing. */
 export function shortAgo(atMs: number | null): string {
   if (atMs === null) return '—';
   const seconds = Math.max(0, Math.round((Date.now() - atMs) / 1000));
-  if (seconds < 3) return 'now';
-  if (seconds < 90) return `${seconds}s`;
+  if (seconds < 3) return '今';
+  if (seconds < 90) return `${seconds}秒`;
   const minutes = Math.round(seconds / 60);
-  return minutes < 90 ? `${minutes}m` : `${Math.round(minutes / 60)}h`;
+  return minutes < 90 ? `${minutes}分` : `${Math.round(minutes / 60)}時間`;
 }
 
 /** A clock time for one event in a timeline. */
 export function clockTime(atMs: number): string {
-  return new Date(atMs).toLocaleTimeString();
+  return new Date(atMs).toLocaleTimeString('ja-JP');
 }
 
 /** "1.2k", "3.4M" — for token and character counts that get large. */
