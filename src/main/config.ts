@@ -17,7 +17,6 @@ import {
   GOAL_REASONING_LEVELS,
   WRITE_CAPABILITIES,
   type Capabilities,
-  DESKTOP_CAPABILITIES,
   type CompactionSettings,
   type Config,
   type GoalSettings,
@@ -49,10 +48,10 @@ import { capabilitiesForPlatform } from './platform.js';
  * configs only: an existing config already carries an explicit `record`, and a user who
  * turned it off keeps it off.
  *
- * Existing configs still keep every explicit permission choice. Fresh installs are different:
- * the Home screen is meant to start fully usable, so every tool permission and the agents
- * surface begin enabled. The migration defaults below remain conservative so an upgrade never
- * widens an older config merely because a field did not exist when that config was written.
+ * Existing configs keep every explicit permission choice. Fresh installs begin from the
+ * conservative capability baseline and read-only mode; mutating capabilities are opt-in.
+ * The migration defaults below remain conservative so an upgrade never widens an older
+ * config merely because a field did not exist when that config was written.
  */
 /**
  * Where the pressure meter turns amber and red.
@@ -155,22 +154,11 @@ const DEFAULT_MULTI_AGENT: MultiAgentSettings = {
   // a plain chat that once called a tool — is the user's choice to make.
   recoverAgentTabs: false
 };
-/** Fresh-install exposure. Kept separate from migration defaults on purpose. */
-const ALL_FIRST_LAUNCH_CAPABILITIES: Capabilities = Object.fromEntries(
-  CAPABILITIES.map((capability) => [capability, true])
-) as Capabilities;
-// Unattributed calls start permitted on a fresh install for the same reason recording does:
-// the ambiguity fences refuse work when the extension cannot *prove* the caller, and a new
-// install is exactly where that evidence path is least likely to be healthy yet. Off, the
-// first thing a user sees is CALLER_IDENTITY_REQUIRED; on, the work runs and its activity is
-// still labelled Unattributed rather than guessed onto a chat. This relaxes only the fences —
-// a positively known dormant/retired/ended worker is refused either way. `DEFAULT_MULTI_AGENT`
-// keeps `false` so an upgrade never relaxes an older config merely because the field was
-// absent when that config was written.
+// Multi-agent remains available on first launch, but unidentified browser callers never inherit
+// that authority. The extension must prove which conversation owns an identity-sensitive call.
 const FIRST_LAUNCH_MULTI_AGENT: MultiAgentSettings = {
   ...DEFAULT_MULTI_AGENT,
-  enabled: true,
-  allowUnattributedCalls: true
+  enabled: true
 };
 
 const rootSchema = z.object({
@@ -386,23 +374,18 @@ const configSchema = z.object({
 });
 
 /**
- * Fresh-install Desktop exposure differs by host. Windows starts the Desktop group on. macOS has
- * a native backend too, but it starts **off** and is switched on by the user: every Desktop
- * action there also needs Screen Recording / Accessibility consent from System Settings, and a
- * fresh install must not publish a second connector nobody can use yet. Unsupported hosts mask
- * the group at the platform boundary while preserving stored choices for a moved config.
+ * Fresh installs reuse the same conservative capability baseline as migrations. Platform
+ * projection still applies so unsupported capabilities remain masked without widening storage.
  */
 function firstLaunchCapabilities(platform: NodeJS.Platform, release?: string): Capabilities {
-  const capabilities = capabilitiesForPlatform({ ...ALL_FIRST_LAUNCH_CAPABILITIES }, platform, release);
-  if (platform === 'darwin') for (const capability of DESKTOP_CAPABILITIES) capabilities[capability] = false;
-  return capabilities;
+  return capabilitiesForPlatform({ ...DEFAULT_CAPABILITIES }, platform, release);
 }
 
 export function defaultConfig(platform: NodeJS.Platform = process.platform, release?: string): Config {
   return {
     roots: [],
     capabilities: firstLaunchCapabilities(platform, release),
-    readOnly: false,
+    readOnly: true,
     tunnel: { kind: 'openai', tunnelId: '', desktopTunnelId: '', binaryPath: '' },
     ui: { minimizeToTray: true, autoConnect: false, privacyScreenshots: false, theme: 'dark' },
     sessions: { ...DEFAULT_SESSIONS },
@@ -415,10 +398,9 @@ export function defaultConfig(platform: NodeJS.Platform = process.platform, rele
 /**
  * Recovery for a config file that exists but cannot be trusted.
  *
- * A missing file is a real first launch and intentionally gets the fully-enabled defaults
- * above. A malformed/corrupt existing file is different: treating damage as consent would
- * widen filesystem/desktop/process access merely because parsing failed. Keep that path on
- * the historical narrow capability set and read-only mode until the user saves settings again.
+ * A missing file is a real first launch and now gets the same conservative capability baseline.
+ * A malformed/corrupt existing file is still treated separately: damage is never consent to
+ * widen filesystem/desktop/process access or autonomous agent behavior.
  */
 function conservativeRecoveryConfig(): Config {
   return {
