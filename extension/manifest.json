@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Chat On Steroids companion",
+  "name": "Chat On Steroids コンパニオン",
   "version": "2.0.6",
-  "description": "Records your ChatGPT session into the local Chat On Steroids app and labels its MCP tool calls with what they actually did.",
+  "description": "ChatGPTのセッションをローカルのChat On Steroidsアプリへ記録し、MCPツール呼び出しに実際の処理内容を表示します。",
   "minimum_chrome_version": "116",
   "permissions": [
     "storage",
@@ -30,7 +30,8 @@
       ],
       "js": [
         "chatgpt-dom.js",
-        "content.js"
+        "content.js",
+        "ja.js"
       ],
       "css": [
         "overlay.css"
