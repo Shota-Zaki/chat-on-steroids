@@ -56,4 +56,18 @@ describe('Japanese UI localization', () => {
       expect(source).toContain(`'${protectedId}'`);
     }
   });
+
+  it('keeps tool payloads and bootstrap text outside the companion localization boundary', () => {
+    const source = readFileSync(new URL('../extension/ja.js', import.meta.url), 'utf8');
+    for (const protectedSelector of [
+      '.clf-stream-text',
+      '.clf-stream-tool-panel',
+      '.clf-stream-tool-change',
+      '.clf-tool-detail',
+      '.clf-boot-preview',
+      '.clf-stage-detail'
+    ]) {
+      expect(source).toContain(`'${protectedSelector}'`);
+    }
+  });
 });
