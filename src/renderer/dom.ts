@@ -1,5 +1,4 @@
-import { translateUiText } from './ja.js';
-import { installJapaneseUi } from './ja-ui.js';
+import { installJapaneseUi, translateJapaneseUiText } from './ja-ui.js';
 
 /**
  * The handful of DOM helpers both panels need.
@@ -51,7 +50,7 @@ let toastTimer: number | undefined;
 
 export function toast(message: string): void {
   document.querySelector('.toast')?.remove();
-  const node = el('div', 'toast', translateUiText(message));
+  const node = el('div', 'toast', translateJapaneseUiText(message));
   document.body.append(node);
   window.clearTimeout(toastTimer);
   toastTimer = window.setTimeout(() => node.remove(), 3200);
