@@ -30,9 +30,9 @@ These are properties of the current design, not vulnerability reports by themsel
 
 - **Release binaries are not publisher-signed; macOS builds are also unnotarized.** Apple-silicon Mach-O files may still carry ad-hoc signatures, which do not identify a publisher or establish Gatekeeper trust. Windows SmartScreen, macOS Gatekeeper or browsers can warn. Verify release SHA-256 checksums before running them.
 - **The Linux AppImage has a sandbox-availability fallback.** Its electron-builder static launcher can add `--no-sandbox` when the host disables unprivileged user namespaces. On Debian/Ubuntu, prefer the DEB on such restrictive systems if you do not want the portable AppImage to take that fallback.
-- **Fresh installs start Core permissions enabled and read-only mode off.** Windows additionally enables Desktop permissions; Desktop is unavailable on macOS/Linux. Review permissions before connecting ChatGPT. Existing installs keep their explicit stored choices.
+- **Fresh installs start read-only with only browse, search, read and metadata capabilities enabled.** File mutation, command execution, screen/control and clipboard capabilities require explicit opt-in. Multi-agent starts enabled, but unattributed calls start blocked. Existing installs keep their explicit stored choices.
 - **Application path checks are not a kernel/VM sandbox.** They substantially constrain the app's filesystem tools, but same-user filesystem races can still exist. Do not treat approved roots as isolation from a hostile local process.
-- **Command and Windows Desktop capabilities are powerful by design.** If enabled, they can act wherever your logged-in user can act, subject to normal OS privilege boundaries.
+- **Command and Desktop capabilities are powerful by design.** If enabled, they can act wherever your logged-in user can act, subject to normal OS privilege boundaries.
 - **Session recording is intentionally detailed and is not encrypted by `safeStorage`.** Recorded conversations/tool activity stay local to this app, but anyone with access to your OS account may be able to read the session files.
 
 ## Scope
