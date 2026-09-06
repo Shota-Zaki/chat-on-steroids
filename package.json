@@ -1,10 +1,10 @@
 {
   "name": "chat-on-steroids",
   "version": "2.0.6",
-  "description": "Local coding bridge for ChatGPT over MCP, with native desktop control and approved-folder capability limits.",
+  "description": "ChatGPT向けLocal MCP Coding Bridge。Approved Folder制御、Native Desktop操作、Session記録、Multi-agentを提供します。",
   "license": "MIT",
   "author": "Chat On Steroids",
-  "homepage": "https://github.com/totec448-spec/chat-on-steroids",
+  "homepage": "https://github.com/Shota-Zaki/chat-on-steroids",
   "desktopName": "com.chatonsteroids.app.desktop",
   "main": "out/main/index.js",
   "scripts": {
