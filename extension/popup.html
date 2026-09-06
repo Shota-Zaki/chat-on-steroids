@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
   <head>
     <meta charset="utf-8" />
     <title>Chat On Steroids</title>
@@ -27,23 +27,23 @@
         <h1>Chat On Steroids</h1>
       </header>
 
-      <p class="pill" id="pill"><span class="dot"></span><span id="state">Looking for the app</span></p>
+      <p class="pill" id="pill"><span class="dot"></span><span id="state">アプリを探しています</span></p>
       <div class="actions reload-action">
-        <button id="reloadBtn" type="button" aria-describedby="reloadStatus">Reload companion</button>
+        <button id="reloadBtn" type="button" aria-describedby="reloadStatus">拡張機能を再読み込み</button>
       </div>
-      <p id="reloadStatus" class="reload-status" role="status">Restarts this extension. Then reopen this popup to check its connection.</p>
+      <p id="reloadStatus" class="reload-status" role="status">この拡張機能を再起動します。その後、このポップアップを開き直して接続を確認してください。</p>
 
-      <p class="caption">Session capture</p>
+      <p class="caption">セッション記録</p>
       <section class="card">
         <div class="row" id="r-tab">
           <svg class="ico"><use href="#i-tab" /></svg>
-          <span class="name">ChatGPT tab</span>
+          <span class="name">ChatGPTタブ</span>
           <span class="meta" id="d-tab"></span>
           <span class="badge"></span>
       </div>
       <div class="row" id="r-rec">
         <svg class="ico"><use href="#i-rec" /></svg>
-        <span class="name">Recording this chat</span>
+        <span class="name">このチャットを記録</span>
         <span class="meta" id="d-rec"></span>
         <span class="badge"></span>
       </div>
@@ -62,15 +62,15 @@
       <details id="stream">
         <summary class="row" id="r-app">
           <svg class="ico"><use href="#i-send" /></svg>
-          <span class="name">Reaching the app</span>
+          <span class="name">アプリへの送信状況</span>
           <span class="meta" id="d-app"></span>
           <span class="badge"></span>
           <span class="chevron" aria-hidden="true"></span>
         </summary>
         <div class="stages">
-          <div class="stage" id="s-read"><span class="tick"></span><span class="name">Picked up</span><span class="meta" id="n-read"></span></div>
-          <div class="stage" id="s-sent"><span class="tick"></span><span class="name">Sent to app</span><span class="meta" id="n-sent"></span></div>
-          <div class="stage" id="s-proc"><span class="tick"></span><span class="name">App processed</span><span class="meta" id="n-proc"></span></div>
+          <div class="stage" id="s-read"><span class="tick"></span><span class="name">取得</span><span class="meta" id="n-read"></span></div>
+          <div class="stage" id="s-sent"><span class="tick"></span><span class="name">アプリへ送信</span><span class="meta" id="n-sent"></span></div>
+          <div class="stage" id="s-proc"><span class="tick"></span><span class="name">アプリ処理済み</span><span class="meta" id="n-proc"></span></div>
           <p class="why" id="why"></p>
           <div class="calls" id="calls"></div>
         </div>
@@ -79,17 +79,17 @@
 
     <p class="alert" id="alert" hidden></p>
 
-    <p class="caption">Augment ChatGPT</p>
+    <p class="caption">ChatGPT拡張</p>
     <section class="card">
       <label class="row" for="overwriteToggle">
         <svg class="ico"><use href="#i-pen" /></svg>
-        <span class="name">Overwrite ChatGPT</span>
+        <span class="name">ChatGPT表示を拡張</span>
         <input id="overwriteToggle" type="checkbox" checked />
         <span class="track" aria-hidden="true"><span class="thumb"></span></span>
       </label>
       <label class="row" for="timeToggle">
         <svg class="ico"><use href="#i-clock" /></svg>
-        <span class="name">Timestamps</span>
+        <span class="name">タイムスタンプ</span>
         <input id="timeToggle" type="checkbox" />
         <span class="track" aria-hidden="true"><span class="thumb"></span></span>
       </label>
@@ -98,18 +98,19 @@
     <details id="more">
       <summary class="card row">
         <svg class="ico"><use href="#i-more" /></svg>
-        <span class="name">Advanced</span>
+        <span class="name">詳細</span>
         <span class="chevron" aria-hidden="true"></span>
       </summary>
       <dl class="grid" id="grid"></dl>
       <div class="actions">
-        <button id="copyBtn" type="button">Copy</button>
-        <button id="retryBtn" type="button" hidden>Try again</button>
-        <button id="unpairBtn" type="button" hidden>Disconnect</button>
+        <button id="copyBtn" type="button">コピー</button>
+        <button id="retryBtn" type="button" hidden>再試行</button>
+        <button id="unpairBtn" type="button" hidden>切断</button>
       </div>
     </details>
 
     </div>
     <script src="popup.js"></script>
+    <script src="ja.js"></script>
   </body>
 </html>
