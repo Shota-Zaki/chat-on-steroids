@@ -12,7 +12,7 @@ Working Branch: `work`
 
 このDocumentは、個人用Hardened Forkに対して実施したStatic Security ReviewとHardening変更を記録します。
 
-**Runtime Verificationは一部未完了です。** このForkではGitHub Actionsを使用しません。`npm run verify`はLocalで成功しましたが、Package / Smoke Test、Live MCP / Chrome、Windows実機確認は未実行です。本DocumentをRuntime Certificationとして扱わないでください。
+**Runtime Verificationは一部未完了です。** このForkではGitHub Actionsを使用しません。`npm run verify`とWindows x64 package生成はLocalで成功しましたが、Packaged GUI Smoke、Live MCP / Chrome、Windows node-pty実機確認は未実行です。本DocumentをRuntime Certificationとして扱わないでください。
 
 V-013の未統合History Privacy Findingは修復・検証済みです。残存するPackage / Smoke / Live検証が完了するまでRelease / Mergeは禁止です。
 
@@ -144,6 +144,17 @@ Severity: **Audit時点Low**
 
 ProjectはElectron `43.4.1`をPinしています。
 
+### R-08 — npm auditのdev-only脆弱性
+
+Severity: **Moderate 1 / High 1。Build-time dependency risk**
+
+`npm audit`は次の2件を検出しました。
+
+- `@xmldom/xmldom@0.8.14` — `plist`経由の`electron-builder` dev dependency。GHSA-6gmq-8vp8-gcm6、moderate。
+- `fast-uri@3.1.5` — `ajv → app-builder-lib → electron-builder`経由のdev dependency。GHSA-5jgf-p345-68v8、GHSA-f65p-4m7j-42xc、GHSA-fph4-wmhf-6fwf、GHSA-jqff-g426-hqxp、high。
+
+`npm ls --omit=dev`は両方とも空で、生成したWindows `app.asar`にも両パッケージ名および`electron-builder` runtime payloadはありませんでした。したがって現時点の分類は**配布runtimeへ非到達のBuild-time依存**です。`npm audit fix --force`や広範なDependency Upgradeは行っていません。上流の安全な解消版が利用可能になった時点で、lockfile、package生成、監査を再検証します。
+
 ### R-07 — Commit Metadata Privacy / Privacy Gate Fork Migration
 
 Severity: **High / Privacy / Release Blocker**
@@ -195,16 +206,20 @@ Severity: **High / Privacy / Release Blocker**
 - V-013 Privacy Regression — **16/16 PASS**
 - `npm ci` — **PASS**
 - `npm run verify` — **PASS**
+- `npm audit` — **FAIL / 要対応**（2件。ただし両方dev-only、配布runtime非到達を確認）
+- `npm run dist:x64` — **PASS**（Windows x64 NSIS Installer生成、unpacked payload生成、native payload checksum検証）
+- MCP / `exec_command` / `write_stdin` / node-pty契約 / Bridge / attribution / fresh-default focused suite — **PASS**（7 files, 565 passed, 4 skipped）
 
 ### 未完了
 
-- Windows Packaged Smoke — **未実行**
+- Windows Packaged GUI Smoke — **未実行**（Installerは生成済み。GUIによるInstall / 起動は実施せず）
 - macOS Packaged Smoke — **未実行**
 - Linux Packaged Smoke — **未実行**
 - Live MCP / Secure Tunnel Test — **未実行**
 - Live Chrome Extension Pairing / Multi-agent Test — **未実行**
 - `node-pty` Windows Regression再現 — **未実行**
 - 日本語UIのPackaged実画面確認 — **未実行**
+- Live ChatGPT tabとのPairing / MCP / attribution — **未実行**（既存Chrome tabの存在確認のみ）
 
 ## このForkのRelease Gate
 

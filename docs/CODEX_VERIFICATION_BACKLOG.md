@@ -19,7 +19,10 @@ GitHub Actionsは使用しません。
 - `npm run verify:privacy`: PASS
 - `test/public-history-privacy.test.ts`: 16/16 PASS
 - `npm run verify`: PASS — 117 test files passed, 1 skipped; 2,934 tests passed, 23 skipped; shutdown suite 2/2 passed
-- Windows Package / Smoke、Live MCP / Chrome、node-pty実機、Packaged UI: 未検証
+- `npm audit`: FAIL — 2件（moderate 1 / high 1）。`@xmldom/xmldom` と `fast-uri` はいずれも `electron-builder` 配下の dev-only dependency で、`npm ls --omit=dev` と packaged `app.asar`には到達しないことを確認。強制Upgradeは未実施。
+- `npm run dist:x64`: PASS — Windows x64 NSIS Installer / unpacked payloadを生成。Installer SHA-256: `32C28FF0551A1B76C596336DA7B95FB540CEE44BE7B6A136B574392661BE1A80`
+- MCP / `exec_command` / `write_stdin` / node-pty契約 / Bridge / attribution / fresh-default focused suites: PASS — 7 files, 565 passed, 4 skipped
+- Windows Package GUI Smoke、Live MCP / Chrome、node-pty Windows実機、Packaged UI: 未検証
 
 ## V-001 — Full local verification
 
@@ -65,6 +68,8 @@ npx vitest run test/config.test.ts test/feature-parity.test.ts
 ```
 
 **期待:** `readOnly=true`、browse/search/read/metadataのみ初期ON、`allowUnattributedCalls=false`。
+
+**実測:** `test/config.test.ts` / `test/feature-parity.test.ts`を含むfocused suiteはPASS。
 
 ## V-004 — Hardened release trust / no-release update
 
@@ -120,6 +125,8 @@ npm run dist:x64
 6. Exit / Output回収が正常
 
 Failure時はbeta Versionを機械的にDowngradeせず、再現条件・stack / error・ConPTY挙動を記録してDependency判断する。
+
+**実測:** MCP / runtime parity testsはPASS。WindowsのPackaged Appを起動した`tty=true` / 複数回`write_stdin`の実機Scenarioは未実行。
 
 ## V-007 — Live MCP / Chrome pairing
 
