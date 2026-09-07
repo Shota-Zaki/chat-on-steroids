@@ -25,7 +25,10 @@ GitHub Actionsは使用しません。
 - Windows fresh install: PASS — Installer exit 0。生成payload、Uninstaller、user-data初期化を確認。
 - Windows packaged startup / renderer / Bridge auth: PASS — `app started`、`renderer state ready`、`window loaded`、`127.0.0.1:8765`、tokenなしendpointの401を確認。
 - Windows uninstall: PASS — 検証用install directory、process、8765–8769 listenerを除去。user-dataは保持。
-- Tray / Packaged日本語UI、Live MCP / Chrome、node-pty Windows実機: 未検証
+- Packaged node-pty / ConPTY: PASS — payload内の`node-pty 1.2.0-beta.15`をロードし、2セッションで各2回stdin、exit 0、追加`cmd.exe` / `OpenConsole.exe`残留0を確認。
+- Packaged app restart: PASS — 再起動後のprocessと8765 listenerを確認。
+- Live ChatGPT connectivity: PASS — 無害な確認文へ`OK`応答を確認。ツール実行は要求していない。
+- Tray / Packaged日本語UI、Chrome pairing、Live MCP / attribution: 未検証
 
 ## V-001 — Full local verification
 
@@ -112,7 +115,7 @@ npm run dist:x64
 - Popupが日本語
 - ChatGPT上のExtension-owned UIが日本語
 
-**実測:** fresh install、startup、renderer、Bridge token境界、uninstallはPASS。Tray、Packaged画面の日本語、Live Chrome pairingは未実行。
+**実測:** fresh install、startup、renderer、Bridge token境界、restart、uninstallはPASS。Tray、Packaged画面の日本語、Chrome pairing、Live MCPは未実行。
 
 ## V-006 — Windows node-pty / interactive terminal
 
@@ -131,11 +134,13 @@ npm run dist:x64
 
 Failure時はbeta Versionを機械的にDowngradeせず、再現条件・stack / error・ConPTY挙動を記録してDependency判断する。
 
-**実測:** MCP / runtime parity testsはPASS。WindowsのPackaged Appを起動した`tty=true` / 複数回`write_stdin`の実機Scenarioは未実行。
+**実測:** MCP / runtime parity testsと、配布payload内node-ptyのConPTY smokeはPASS。Packaged AppのMCP dispatcher経由`tty=true` / `write_stdin`は、command permission OFFのため未実行。
 
 ## V-007 — Live MCP / Chrome pairing
 
 **目的:** 実際のChatGPT + Chrome Extension + Local Appで、Static Reviewだけでは確認できないBoundaryを検証する。
+
+**実測:** 既存Chromeで無害なChatGPT connectivity smoke（`OK`応答）はPASS。app logにExtension pairing / MCP tool call / attributionの証拠がなく、pairing・Live MCP・attributionは未検証。
 
 **確認:**
 
