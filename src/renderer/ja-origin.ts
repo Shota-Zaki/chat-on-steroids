@@ -12,5 +12,10 @@ export function shouldInstallJapaneseUi(location: RendererLocationLike | null | 
   if (!location) return false;
   if (location.protocol === 'file:') return true;
   if (location.protocol !== 'http:' && location.protocol !== 'https:') return false;
-  return location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname === '::1';
+  return (
+    location.hostname === 'localhost' ||
+    location.hostname === '127.0.0.1' ||
+    location.hostname === '::1' ||
+    location.hostname === '[::1]'
+  );
 }
