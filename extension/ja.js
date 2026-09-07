@@ -43,6 +43,7 @@
     ['yes', 'はい'],
     ['no', 'いいえ'],
     ['no record', '記録なし'],
+    ['ok', '正常'],
     ['app', 'アプリ'],
     ['extension', '拡張機能'],
     ['chat id', 'Chat ID'],
@@ -91,6 +92,7 @@
 
   const normalize = value => String(value || '').trim().replace(/\s+/g, ' ');
   const exact = new Map(entries.map(([source, target]) => [normalize(source), target]));
+  const localized = value => exact.get(normalize(value)) || value;
   const patterns = [
     [/^Reload failed: (.+)$/, (_all, error) => `再読み込みに失敗しました: ${error}`],
     [/^Connected · Port (.+)$/, (_all, port) => `接続済み · ポート ${port}`],
@@ -110,7 +112,10 @@
     [/^(\d+)h$/, (_all, value) => `${value}時間`],
     [/^Auto-compaction on, from (.+) tokens$/, (_all, value) => `自動コンパクト: オン · ${value}トークンから`],
     [/^The app rejected the last delivery \((.+)\)\.$/, (_all, error) => `アプリが直前の送信を拒否しました（${error}）。`],
-    [/^The extension is not accepting this tab’s observations \((.+)\)\. Reload the ChatGPT tab\.$/, (_all, error) => `拡張機能がこのタブの観測を受け付けていません（${error}）。ChatGPTタブを再読み込みしてください。`]
+    [/^The extension is not accepting this tab’s observations \((.+)\)\. Reload the ChatGPT tab\.$/, (_all, error) => `拡張機能がこのタブの観測を受け付けていません（${error}）。ChatGPTタブを再読み込みしてください。`],
+    [/^The app could not place (a call|\d+ calls) by request id — it fell back to (.+)\.$/, (_all, calls, fallback) => `アプリは${calls === 'a call' ? '1件の呼び出し' : calls.replace(' calls', '件の呼び出し')}をRequest IDで紐付けできず、${localized(fallback)}へフォールバックしました。`],
+    [/^(.+) — picked up (yes|no) · sent (yes|no) · app (.+)$/, (_all, requestId, read, sent, app) => `${requestId} — 取得 ${localized(read)} · 送信 ${localized(sent)} · アプリ ${localized(app)}`],
+    [/^(.+) · (\d+) · (\d+)(s|m|h) ago$/, (_all, state, count, value, unit) => `${localized(state)} · ${count} · ${value}${unit === 's' ? '秒' : unit === 'm' ? '分' : '時間'}前`]
   ];
 
   const translate = value => {
