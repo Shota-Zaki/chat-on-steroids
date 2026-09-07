@@ -121,8 +121,9 @@ export function translateJapaneseUiText(value: string): string {
   const normalized = normalize(value);
   const exact = EXTRA.get(normalized);
   if (exact) return exact;
+  const trimmed = value.trim();
   for (const [pattern, replacer] of EXTRA_PATTERNS) {
-    const match = pattern.exec(normalized);
+    const match = pattern.exec(trimmed);
     if (match) return replacer(...match);
   }
   return value;
