@@ -13,6 +13,7 @@ const EXACT = new Map<string, string>([
   ['User attachment', 'ユーザー添付画像'],
   ['All', 'すべて'],
   ['Unattributed', '出所不明'],
+  ['Activity', 'アクティビティ'],
   [
     'From a chat that Compact & Resume had already replaced — ChatGPT kept running its stopped turn there. Refused by design; nothing to repair.',
     'Compact & Resumeで置換済みのチャットからの呼び出しです。ChatGPT側では停止済みターンが継続していました。設計どおり拒否されており、修復は不要です。'
@@ -29,7 +30,8 @@ const PATTERNS: Array<[RegExp, (...parts: string[]) => string]> = [
   [/^Handoff saved — (.+) characters \((.+)\)$/, (_all, chars, reason) => `引き継ぎを保存 — ${chars}文字（${reason}）`],
   [/^ … cut, (.+) characters in the original$/, (_all, chars) => ` … 省略（元の内容は${chars}文字）`],
   [/^Sent by (.+); recorded when the app accepted it$/, (_all, who) => `${who}が送信 · アプリ受理時に記録`],
-  [/^Received by (.+); recorded when it acknowledged delivery$/, (_all, who) => `${who}が受信 · 受領確認時に記録`]
+  [/^Received by (.+); recorded when it acknowledged delivery$/, (_all, who) => `${who}が受信 · 受領確認時に記録`],
+  [/^(\d+) actions · (.+)$/, (_all, count, label) => `${count}件の操作 · ${EXACT.get(label) ?? label}`]
 ];
 
 function translate(value: string): string {
