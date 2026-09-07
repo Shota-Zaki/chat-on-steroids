@@ -29,7 +29,7 @@ npm run verify
 
 **対象:** `src/renderer/ja-*.ts`、`extension/ja.js`、日本語化済みRenderer / Popup / Native UI
 
-**目的:** 日本語化が機械契約・User Data・既存Renderer Testを壊していないことを確認する。
+**目的:** 既存の日本語化が機械契約・User Data・既存Renderer Testを壊していないことを確認する。Runtime / IPC / Bridge / MCP / Model検出等へ変更が必要になる残存英語は日本語化必須条件としない。
 
 **Command候補:**
 
@@ -232,31 +232,15 @@ npm run verify
 - Dynamic StatusのApp-owned周辺文言だけが日本語化される
 - Chrome ExtensionでError本文・Model名・Run IDを保持したまま周辺Labelだけが日本語化される
 
-## V-012 — Native file dialog localization
+## V-012 — Native file dialog localization — closed by policy
 
-**対象:** `src/main/ipc.ts`、`test/japanese-ui.test.ts`
+**状態:** Closed / 実装不要
 
-**状態:** Implementation保留 / Codex検証待ち
+`src/main/ipc.ts`はRuntime / IPC責務を持つため、日本語化だけを目的とした変更対象から外しました。Native File DialogのTitle / Filterに英語が残ることは許容します。
 
-**背景:** `test/japanese-ui.test.ts`にはNative File Dialogの日本語表示を要求するRegression Contractが追加済みだが、Repository整理ではRuntime / IPCの挙動へ影響し得る変更を避けるため、`src/main/ipc.ts`の実装修正は行っていない。
+以前`test/japanese-ui.test.ts`へ追加されたNative File Dialog日本語化の必須Regression Contractも撤回済みです。Diagnostic Error本文、File Path、IPC identifier、Tool / Protocol Contractは引き続き原文保持します。
 
-**実装時の対象:** 
-
-- Approved Folder picker title
-- Project Folder picker title
-- Tunnel executable picker title / Windows filter label
-- Image picker title / filter label
-
-**保持する契約:** Diagnostic Error本文、File Path、IPC identifier、Tool / Protocol ContractはLocalization対象外として原文保持する。
-
-**Command候補:**
-
-```sh
-npx vitest run test/japanese-ui.test.ts
-npm run verify
-```
-
-**実画面確認:** Windows Package上で各Native DialogのTitle / Filterが日本語になり、選択結果のPathやError本文が変形していないこと。
+この項目はVerification待ちではなく、安定性優先の方針決定を記録するために残しています。
 
 ## Deferred rule
 
