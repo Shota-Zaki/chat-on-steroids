@@ -5,7 +5,7 @@
 ## 正本と優先順位
 
 - 対象Subsystemを変更する前に、upstreamのArchitecture / Incident History正本として `AGENTS.md` を読むこと。
-- 本ファイルの規則は、初期権限・Fork運用・日本語UI・ブランチ方針についてupstreamの記述と競合する場合に優先する。
+- 本ファイルの規則は、初期権限・Fork運用・日本語UI・ブランチ方針・検証方針についてupstreamの記述と競合する場合に優先する。
 - Security Hardening、再現済みBug、明示的に承認されたFork固有要件以外では、upstreamの挙動を不必要に変更しない。
 
 ## Branch方針
@@ -13,6 +13,17 @@
 - 実装・Test・Audit・Documentationはすべて `work` Branchで行う。
 - `main` へ直接書き込まない。
 - `main` はレビュー済みの統合基準として維持する。
+
+## Verification方針
+
+このForkではGitHub Actionsを検証手段として使用しない。
+
+- GitHub Actionsを有効化・手動実行・再実行しない。
+- `.github/workflows/` はupstream互換や参照目的で残してよいが、Forkの完成判定やRelease Gateの根拠にはしない。
+- 検証は対象CommitをLocal Checkoutし、`npm run verify`、必要な個別Test、Package / Smoke Test、Windows実機確認を実行して行う。
+- Windows固有機能はmainPC上の実機結果を正本とする。
+- macOS / Linux固有項目を未実行のまま完了扱いしない。実行しない場合は未検証として明記する。
+- 実際にCommandを実行して結果を確認していないTest / Verificationを「Pass」と報告しない。
 
 ## Hardened Fresh Install基準
 
@@ -51,7 +62,5 @@ Security-sensitiveな変更では次を守る。
 1. Unsafe Behaviorを再現するか、決定的なRegression Testで固定する。
 2. 最も早いRoot Cause Boundaryを、必要最小限で一貫した変更として修正する。
 3. 可能なら重複Testを増やさず既存Testを更新する。
-4. 最寄りのRegression、隣接Boundary Test、`npm run verify` を実行してから完了扱いする。
+4. Local Checkoutで最寄りのRegression、隣接Boundary Test、`npm run verify` を実行してから完了扱いする。
 5. README / SECURITY等の利用者向け文書を実際のPermission Modelと一致させる。
-
-実際にCommandを実行して結果を確認していないTest / Verificationを「Pass」と報告しない。
