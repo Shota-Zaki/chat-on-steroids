@@ -22,7 +22,10 @@ GitHub Actionsは使用しません。
 - `npm audit`: FAIL — 2件（moderate 1 / high 1）。`@xmldom/xmldom` と `fast-uri` はいずれも `electron-builder` 配下の dev-only dependency で、`npm ls --omit=dev` と packaged `app.asar`には到達しないことを確認。強制Upgradeは未実施。
 - `npm run dist:x64`: PASS — Windows x64 NSIS Installer / unpacked payloadを生成。Installer SHA-256: `32C28FF0551A1B76C596336DA7B95FB540CEE44BE7B6A136B574392661BE1A80`
 - MCP / `exec_command` / `write_stdin` / node-pty契約 / Bridge / attribution / fresh-default focused suites: PASS — 7 files, 565 passed, 4 skipped
-- Windows Package GUI Smoke、Live MCP / Chrome、node-pty Windows実機、Packaged UI: 未検証
+- Windows fresh install: PASS — Installer exit 0。生成payload、Uninstaller、user-data初期化を確認。
+- Windows packaged startup / renderer / Bridge auth: PASS — `app started`、`renderer state ready`、`window loaded`、`127.0.0.1:8765`、tokenなしendpointの401を確認。
+- Windows uninstall: PASS — 検証用install directory、process、8765–8769 listenerを除去。user-dataは保持。
+- Tray / Packaged日本語UI、Live MCP / Chrome、node-pty Windows実機: 未検証
 
 ## V-001 — Full local verification
 
@@ -108,6 +111,8 @@ npm run dist:x64
 - Chrome Extension Folderを開ける
 - Popupが日本語
 - ChatGPT上のExtension-owned UIが日本語
+
+**実測:** fresh install、startup、renderer、Bridge token境界、uninstallはPASS。Tray、Packaged画面の日本語、Live Chrome pairingは未実行。
 
 ## V-006 — Windows node-pty / interactive terminal
 

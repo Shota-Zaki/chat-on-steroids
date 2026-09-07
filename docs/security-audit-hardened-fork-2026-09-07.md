@@ -12,7 +12,7 @@ Working Branch: `work`
 
 このDocumentは、個人用Hardened Forkに対して実施したStatic Security ReviewとHardening変更を記録します。
 
-**Runtime Verificationは一部未完了です。** このForkではGitHub Actionsを使用しません。`npm run verify`とWindows x64 package生成はLocalで成功しましたが、Packaged GUI Smoke、Live MCP / Chrome、Windows node-pty実機確認は未実行です。本DocumentをRuntime Certificationとして扱わないでください。
+**Runtime Verificationは一部未完了です。** このForkではGitHub Actionsを使用しません。`npm run verify`、Windows x64 package生成、fresh install、startup、renderer、Bridge auth、uninstallはLocal / Windows実機で確認しましたが、Tray、Packaged UIの日本語確認、Live MCP / Chrome、Windows node-pty実機確認は未実行です。本DocumentをRuntime Certificationとして扱わないでください。
 
 V-013の未統合History Privacy Findingは修復・検証済みです。残存するPackage / Smoke / Live検証が完了するまでRelease / Mergeは禁止です。
 
@@ -209,10 +209,12 @@ Severity: **High / Privacy / Release Blocker**
 - `npm audit` — **FAIL / 要対応**（2件。ただし両方dev-only、配布runtime非到達を確認）
 - `npm run dist:x64` — **PASS**（Windows x64 NSIS Installer生成、unpacked payload生成、native payload checksum検証）
 - MCP / `exec_command` / `write_stdin` / node-pty契約 / Bridge / attribution / fresh-default focused suite — **PASS**（7 files, 565 passed, 4 skipped）
+- Windows fresh install / startup / renderer / Bridge auth — **PASS**（Installer exit 0、window loaded、8765 listener、tokenなしendpoint 401）
+- Windows verification uninstall — **PASS**（install directory、process、8765–8769 listenerを除去。user-dataは保持）
 
 ### 未完了
 
-- Windows Packaged GUI Smoke — **未実行**（Installerは生成済み。GUIによるInstall / 起動は実施せず）
+- Windows Packaged GUI Smoke — **一部未完了**（Tray、Packaged日本語UI、実端末操作は未確認）
 - macOS Packaged Smoke — **未実行**
 - Linux Packaged Smoke — **未実行**
 - Live MCP / Secure Tunnel Test — **未実行**
