@@ -12,7 +12,7 @@ Working Branch: `work`
 
 このDocumentは、個人用Hardened Forkに対して実施したStatic Security ReviewとHardening変更を記録します。
 
-**Runtime Verificationは一部未完了です。** このForkではGitHub Actionsを使用しません。`npm run verify`、Windows x64 package生成、fresh install、startup、renderer、Bridge auth、packaged node-pty / ConPTY smoke、restart、uninstall、無害なChatGPT connectivity smoke、Bridgeのtoken / origin拒否は確認しましたが、Tray、Packaged UIの日本語確認、正式Chrome pairing / reconnect、Live MCP / attributionは未実行です。本DocumentをRuntime Certificationとして扱わないでください。
+**Runtime Verificationは一部未完了です。** このForkではGitHub Actionsを使用しません。`npm run verify`、Windows x64 package生成、fresh install、startup、renderer、Bridge auth、packaged node-pty / ConPTY smoke、restart、uninstall、無害なChatGPT connectivity smoke、Bridgeのtoken / origin拒否は確認しましたが、Tray、Packaged UIの日本語確認、正式Chrome pairing / reconnect、Live MCP / attributionは未実行です。本DocumentをRuntime Certificationとして扱わないでください。GitHub Repository設定ではIssuesを有効化し、`main`へPR必須・1 approval・admin enforcement・force-push/delete禁止を適用済みです。Required Status Checksは設定していません。
 
 V-013の未統合History Privacy Findingは修復・検証済みです。残存するPackage / Smoke / Live検証が完了するまでRelease / Mergeは禁止です。
 
@@ -167,7 +167,7 @@ Severity: **High / Privacy / Release Blocker**
 
 **解決結果:** Rewrite前Bundleを保存し、`main..work`の124コミットだけを対象にmetadataを修復しました。Rewrite後も125コミット先行、Tree・commit message・名前・日時は不変で、Fork `main` / upstream `main`は変更していません。Privacy Gateはexit code 0、Privacy Regressionは16/16、Full Local Verificationは成功しました。個人メール値は本Documentへ記録しません。
 
-**Release Blocker:** **YES**。V-013は完了しましたが、Package / Smoke / Live検証が未完了のため、PR #1はDraftを維持し、Merge / Releaseしません。
+**Release Blocker:** **CONDITIONAL**。V-013、Local Verification、Package、fresh install、startup、Bridge auth、node-pty smoke、restart、uninstallは完了しました。Tray / Packaged UIの実画面確認、正式Chrome pairing / reconnect、Live MCP / attributionはこの環境で未実行のため、PR #1はDraftを維持し、Merge / Releaseしません。
 
 **Codex Verification:** `docs/CODEX_VERIFICATION_BACKLOG.md`のV-013を正本とします。`main` / upstream Historyを変更せず、Tree内容の不変を検証したうえで`work`の未統合Historyだけを修復します。
 
@@ -216,14 +216,14 @@ Severity: **High / Privacy / Release Blocker**
 - Browser Bridge invalid-token / unsupported-origin checks — **PASS**（401 / 401 / 403）
 - Windows verification uninstall — **PASS**（install directory、process、8765–8769 listenerを除去。user-dataは保持）
 
-### 未完了
+### 未完了 / 環境依存
 
-- Windows Packaged GUI Smoke — **一部未完了**（Tray、Packaged日本語UI、実端末操作は未確認）
+- Windows Packaged GUI Smoke — **一部未完了**（Tray、Packaged日本語UI、実端末操作は未確認。現在の検証環境にはNative UI automation backendがない）
 - macOS Packaged Smoke — **未実行**
 - Linux Packaged Smoke — **未実行**
-- Live MCP / Secure Tunnel Test — **未実行**
+- Live MCP / Secure Tunnel Test — **未実行**（正式pairingが未完了）
 - Live Chrome Extension Pairing / Multi-agent Test — **未実行**
-- Chrome reconnect / formal pairing — **未実行**（Extension browser / model-catalog tabの存在のみ確認）
+- Chrome reconnect / formal pairing — **未実行**（Extension browser / model-catalog tabの存在のみ確認。token provisioningの実機操作が必要）
 - Packaged App MCP dispatcher経由の`exec_command` / `tty=true` / `write_stdin` — **未実行**（command permission OFFを維持）
 - `node-pty` Windows Regression再現 — **未再現**（配布payload smokeはPASS）
 - 日本語UIのPackaged実画面確認 — **未実行**

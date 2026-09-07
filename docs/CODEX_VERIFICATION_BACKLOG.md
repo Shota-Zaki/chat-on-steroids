@@ -9,7 +9,7 @@ GitHub Actionsは使用しません。
 - Chat側: Static Review / Implementation / V-013 remediation completed
 - Local Verification: V-013 Privacy Gate and full local verification completed
 - Pass判定: 実際にLocal Command / Package / 実機確認を実行した項目のみ
-- Release: Package / Smoke / Live verification完了までBlocked
+- Release: Native UI / formal pairing / Live MCP verification完了までConditionally Ready
 
 ### Latest Codex verification
 
@@ -31,6 +31,7 @@ GitHub Actionsは使用しません。
 - Existing Chrome Extension / ChatGPT tab observation: 部分確認 — Extension browserがロード済みで、packaged appがmodel-catalog tabを開くことを確認。
 - Browser Bridge security checks: PASS — no-token=401、bad-token=401、unsupported-origin=403。
 - Tray / Packaged日本語UI、正式Chrome pairing / reconnect、Live MCP / live attribution: 未検証
+- GitHub Repository settings: PASS — Issuesを有効化。`main`へPR必須・1 approval・admin enforcement・force-push/delete禁止を設定。Required Status Checksは未設定。
 
 ## V-001 — Full local verification
 
@@ -390,24 +391,23 @@ git rev-parse refs/remotes/origin/work
 - `main..work`のMaintainer Author / CommitterがGitHub noreplyのみ
 - `npm run verify:privacy` / `npm run verify`の対象CommitがPush後HEADと一致
 
-**完了条件:** History Rewrite、Privacy Gate、Local Verificationの3点はこの作業候補で確認済み。Package / Smoke / Live検証が残るため、Merge / Release禁止は継続する。
+**完了条件:** History Rewrite、Privacy Gate、Local Verification、Package、Windows startup / Bridge securityは確認済み。Native UI、正式pairing / reconnect、Live MCP / attributionは未検証のため、PR #1はDraftを維持し、Merge / Release禁止は継続する。
 
-## GitHub Repository Settings — Manual follow-up
+## GitHub Repository Settings
 
-Repository Admin設定は現在のChat Connectorから安全に変更できないため、次をManual設定項目として残す。
+GitHub Repository Admin設定は、作業範囲に含めて安全に適用し、APIで再確認した。
 
 ### Issues
 
-- 現在RepositoryではGitHub Issuesが無効。
-- `.github/ISSUE_TEMPLATE/*`が存在し、README / CONTRIBUTINGも通常Bug / Feature報告にIssuesを参照しているため不整合。
-- **推奨:** Issuesを有効化する。
+- `has_issues=true` — **PASS**。
+- `.github/ISSUE_TEMPLATE/*`、README、CONTRIBUTINGの通常Bug / Feature報告導線と整合。
 - Security VulnerabilityはIssuesではなくGitHub Private Vulnerability Reporting / Security Advisoryを使用する現行`SECURITY.md`方針を維持する。
 
 ### `main` protection / ruleset
 
-- 現在`main`はProtectedではなく、Repository Rulesetも確認できない。
-- **推奨:** `main`へのDirect Push、Force Push、Deleteを拒否し、PR経由を必須にする。
-- 必要に応じてReview Approvalを要求する。
+- `main` protection — **PASS**。
+- PR required、required approving reviews = 1、dismiss stale reviews、admin enforcementを設定。
+- Direct Push相当の保護として、force push / branch deletionを拒否。
 - このForkではGitHub ActionsをVerification Authorityにしないため、GitHub Actions CheckをRequired Status Checkへ設定しない。
 - `work`運用とPR #1 Draft方針は維持する。
 
