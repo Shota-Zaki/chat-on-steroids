@@ -14,12 +14,16 @@ Working Branch: `work`
 
 **Runtime Verificationは未完了です。** このForkではGitHub Actionsを使用しません。`npm run verify`、Package / Smoke Test、Windows実機確認は対象CommitをLocal Checkoutして実行し、その実行結果をVerificationの正本とします。本DocumentをRuntime Certificationとして扱わないでください。
 
+また、`main..work`の未統合HistoryにはCommit Metadata Privacyの未解決Findingがあります。V-013が完了するまでRelease / Mergeは禁止です。
+
 ## 要約
 
-Fork固有の重大な問題を2件修正しました。
+Fork固有の重大なRuntime / Release Trust問題を2件修正しました。
 
 1. Fresh InstallでFile変更、Command、Desktop等の強力なPermissionが広く有効だった。
 2. Runtime Update / Recovery Linkがupstream RepositoryをTrustしており、Hardened Fork Buildが将来upstream Artifactへ置換される可能性があった。
+
+加えて、Fork MaintainerのCommit Author / Committer Privacy GateをStatic Reviewし、Fork固有Published BoundaryとRegression Testの移行不備を修正しました。ただし既存の未統合Commit History自体はまだ修復していないため、R-07 / V-013をRelease Blockerとして維持します。
 
 upstream実装には、File System Containment、MCP Transport Authentication、Secret Storage、Renderer Isolation、Update Checksum、Permission Revocationなど多くの防御が既に実装されており、これらは維持しています。
 
@@ -140,6 +144,22 @@ Severity: **Audit時点Low**
 
 ProjectはElectron `43.4.1`をPinしています。
 
+### R-07 — Commit Metadata Privacy / Privacy Gate Fork Migration
+
+Severity: **High / Privacy / Release Blocker**
+
+**Root Cause:** Public-history Privacy Gateはupstream運用から移行されており、Fork Maintainer判定は`Shota-Zaki`へ変更済みでしたが、Published Boundaryに`origin/main` Fallbackが残り、Regression Testもupstream Maintainer / upstream Repository前提のままでした。`origin`がupstreamを指すCloneでは、ForkのPublished BoundaryではないHistoryを誤って公開済み扱いする余地がありました。
+
+**影響:** `main..work`の未統合HistoryにGitHub noreplyではないFork Maintainer Author / Committer metadataが残ったままMerge / Releaseすると、そのmetadataが公開Git Historyへ固定されます。また誤ったPublished BoundaryはPrivacy Gateの検出範囲を狭める可能性があります。
+
+**修正済み範囲:** `scripts/verify-public-history.mjs`はMaintainerを`Shota-Zaki`、許可形式をGitHub noreplyに限定し、Published BoundaryをURLが完全一致する`Shota-Zaki/chat-on-steroids`のRemote `main`だけに限定しました。Fork RemoteまたはそのFetched `main`が無い場合は何も公開済み扱いせず、`origin/main`へFallbackしません。Regression TestもFork MaintainerとFork Published Boundaryへ移行し、非noreply Fixtureには実在個人アドレスを使用しません。
+
+**未解決範囲:** 既存の`main..work` History自体はまだRewriteしていません。Static確認で到達可能な未統合Commitに非noreply Maintainer metadataが存在するため、History Rewriteは必要です。個人メール値は本Documentへ記録しません。`npm run verify:privacy` / `npm run verify`もLocal未実行です。
+
+**Release Blocker:** **YES**。V-013で`work`のみを安全にRewriteし、Fork Published Boundary基準のPrivacy GateとFull Local Verificationを実行して成功を確認するまで、PR #1はDraftを維持し、Merge / Releaseしません。
+
+**Codex Verification:** `docs/CODEX_VERIFICATION_BACKLOG.md`のV-013を正本とします。`main` / upstream Historyを変更せず、Tree内容の不変を検証したうえで`work`の未統合Historyだけを修復します。
+
 ## Verification方針
 
 このForkではGitHub Actionsを使用しません。
@@ -169,9 +189,12 @@ ProjectはElectron `43.4.1`をPinしています。
 - Dynamic Localization Payload Preservation Regression追加
 - No-release Update Regression追加
 - MCP / File System / Command / Desktop / Renderer / Secret / Update / Packaging BoundaryのStatic Review
+- V-013 Privacy GateのFork Published Boundary Static Review / Regression Test移行
 
 ### 未完了
 
+- V-013 `main..work` Commit History Rewrite — **未実行 / Release Blocker**
+- `npm run verify:privacy` — **Local実行成功を未確認**
 - `npm run verify` — **Local実行成功を未確認**
 - Windows Packaged Smoke — **未実行**
 - macOS Packaged Smoke — **未実行**
@@ -183,11 +206,12 @@ ProjectはElectron `43.4.1`をPinしています。
 
 ## このForkのRelease Gate
 
-1. Exact Reviewed CommitをLocal Checkoutする。
-2. Local環境で`npm run verify`がPassする。
-3. Native Windows Packaging / SmokeがPassする。
-4. Windowsで`tty=true` + `write_stdin`を実際に検証する。
-5. Built Releaseの`SHA256SUMS.txt`とInstaller Hashを独立確認する。
-6. Update / Manual Download / Extension Recoveryがすべて`Shota-Zaki/chat-on-steroids`配下であることをRegressionで確認する。
-7. Desktop App / Tray / Notification / Chrome Extension Popup / ChatGPT Overlayの日本語表示をPackaged Buildで確認する。
-8. macOS / LinuxをRelease対象に含める場合は、それぞれのPackage / Smoke Testを対象OSで実行する。未検証OSはRelease対象外として明記する。
+1. V-013を完了し、`main..work`のFork Maintainer Author / CommitterがGitHub noreply形式だけであることをLocalで確認する。
+2. Exact Reviewed CommitをLocal Checkoutする。
+3. Local環境で`npm run verify`がPassする。
+4. Native Windows Packaging / SmokeがPassする。
+5. Windowsで`tty=true` + `write_stdin`を実際に検証する。
+6. Built Releaseの`SHA256SUMS.txt`とInstaller Hashを独立確認する。
+7. Update / Manual Download / Extension Recoveryがすべて`Shota-Zaki/chat-on-steroids`配下であることをRegressionで確認する。
+8. Desktop App / Tray / Notification / Chrome Extension Popup / ChatGPT Overlayの日本語表示をPackaged Buildで確認する。
+9. macOS / LinuxをRelease対象に含める場合は、それぞれのPackage / Smoke Testを対象OSで実行する。未検証OSはRelease対象外として明記する。

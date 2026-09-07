@@ -6,7 +6,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 const script = path.join(process.cwd(), 'scripts', 'verify-public-history.mjs');
 const repositories: string[] = [];
-const safeEmail = '227782719+totec448-spec@users.noreply.github.com';
+const maintainerName = 'Shota-Zaki';
+const safeEmail = '246847859+Shota-Zaki@users.noreply.github.com';
+const unsafeEmail = ['Shota-Zaki', 'example.invalid'].join('@');
+const forkHttps = 'https://github.com/Shota-Zaki/chat-on-steroids.git';
+const upstreamHttps = 'https://github.com/totec448-spec/chat-on-steroids.git';
 
 function makeRepository(): string {
   const repository = mkdtempSync(path.join(tmpdir(), 'public-history-privacy-'));
@@ -23,9 +27,9 @@ function commit(repository: string, message: string, email: string): void {
     cwd: repository,
     env: {
       ...process.env,
-      GIT_AUTHOR_NAME: 'totec448-spec',
+      GIT_AUTHOR_NAME: maintainerName,
       GIT_AUTHOR_EMAIL: email,
-      GIT_COMMITTER_NAME: 'totec448-spec',
+      GIT_COMMITTER_NAME: maintainerName,
       GIT_COMMITTER_EMAIL: email,
     },
   });
@@ -36,9 +40,9 @@ function tag(repository: string, name: string, message: string, email: string): 
     cwd: repository,
     env: {
       ...process.env,
-      GIT_COMMITTER_NAME: 'totec448-spec',
+      GIT_COMMITTER_NAME: maintainerName,
       GIT_COMMITTER_EMAIL: email,
-      GIT_AUTHOR_NAME: 'totec448-spec',
+      GIT_AUTHOR_NAME: maintainerName,
       GIT_AUTHOR_EMAIL: email,
     },
   });
@@ -68,13 +72,12 @@ describe('public-history privacy gate', () => {
 
   it('rejects a non-noreply maintainer identity without printing the address', () => {
     const repository = makeRepository();
-    const privateEmail = ['totec448', 'gmail.com'].join('@');
-    commit(repository, 'Unsafe identity', privateEmail);
+    commit(repository, 'Unsafe identity', unsafeEmail);
 
     const result = verify(repository);
     expect(result.status).toBe(1);
     expect(result.stderr).toContain('non-noreply maintainer email');
-    expect(result.stderr).not.toContain(privateEmail);
+    expect(result.stderr).not.toContain(unsafeEmail);
   });
 
   it('rejects Claude session provenance in commit messages without echoing it', () => {
@@ -95,9 +98,8 @@ describe('public-history privacy gate', () => {
    */
   it('passes a clean checked-out line even when an unrelated ref carries unsafe identity', () => {
     const repository = makeRepository();
-    const privateEmail = ['totec448', 'gmail.com'].join('@');
     execFileSync('git', ['checkout', '-q', '-b', 'unrelated'], { cwd: repository });
-    commit(repository, 'Unsafe identity on a ref this branch never contains', privateEmail);
+    commit(repository, 'Unsafe identity on a ref this branch never contains', unsafeEmail);
     execFileSync('git', ['checkout', '-q', 'main'], { cwd: repository });
 
     const result = verify(repository);
@@ -107,26 +109,24 @@ describe('public-history privacy gate', () => {
 
   it('still rejects unsafe identity that is an ancestor of HEAD', () => {
     const repository = makeRepository();
-    const privateEmail = ['totec448', 'gmail.com'].join('@');
-    commit(repository, 'Unsafe identity in ancestry', privateEmail);
+    commit(repository, 'Unsafe identity in ancestry', unsafeEmail);
     commit(repository, 'Clean commit on top', safeEmail);
 
     const result = verify(repository);
     expect(result.status).toBe(1);
     expect(result.stderr).toContain('non-noreply maintainer email');
-    expect(result.stderr).not.toContain(privateEmail);
+    expect(result.stderr).not.toContain(unsafeEmail);
   });
 
   /**
-   * The merge commit GitHub writes for a merged pull request carries whatever address that
-   * account publishes, and no local hook ever saw it. Once it is on `origin/main` the value
-   * is public, so failing every later push cannot unpublish it — it only strands the clone.
-   * Taking it out is a deliberate rewrite of a public branch, not a hook's decision.
+   * Once an unsafe commit is already on this fork's published main, a local hook cannot
+   * unpublish it. The exemption is intentionally tied to the exact hardened-fork remote,
+   * never merely to a ref named origin/main.
    */
-  it('exempts unsafe identity that is already published on origin/main', () => {
+  it('exempts unsafe identity that is already published on the hardened fork main', () => {
     const repository = makeRepository();
-    const privateEmail = ['totec448', 'gmail.com'].join('@');
-    commit(repository, 'Unsafe identity merged through the forge', privateEmail);
+    execFileSync('git', ['remote', 'add', 'origin', forkHttps], { cwd: repository });
+    commit(repository, 'Unsafe identity merged through the forge', unsafeEmail);
     execFileSync('git', ['update-ref', 'refs/remotes/origin/main', 'HEAD'], { cwd: repository });
     commit(repository, 'Clean local commit on top', safeEmail);
 
@@ -136,53 +136,53 @@ describe('public-history privacy gate', () => {
   });
 
   it.each([
-    'https://github.com/totec448-spec/chat-on-steroids.git',
-    'git@github.com:totec448-spec/chat-on-steroids.git',
-    'ssh://git@github.com/totec448-spec/chat-on-steroids'
-  ])('recognizes canonical main under an arbitrary remote name (%s)', (url) => {
+    'https://github.com/Shota-Zaki/chat-on-steroids.git',
+    'git@github.com:Shota-Zaki/chat-on-steroids.git',
+    'ssh://git@github.com/Shota-Zaki/chat-on-steroids'
+  ])('recognizes hardened fork main under an arbitrary remote name (%s)', (url) => {
     const repository = makeRepository();
-    execFileSync('git', ['remote', 'add', 'origin', 'https://github.com/example/fork.git'], { cwd: repository });
+    execFileSync('git', ['remote', 'add', 'origin', upstreamHttps], { cwd: repository });
     execFileSync('git', ['remote', 'add', 'published', url], { cwd: repository });
     execFileSync('git', ['update-ref', 'refs/remotes/origin/main', 'HEAD'], { cwd: repository });
-    commit(repository, 'Already public canonical commit', ['totec448', 'gmail.com'].join('@'));
+    commit(repository, 'Already public hardened-fork commit', unsafeEmail);
     execFileSync('git', ['update-ref', 'refs/remotes/published/main', 'HEAD'], { cwd: repository });
     commit(repository, 'Local clean change', safeEmail);
     expect(verify(repository).status).toBe(0);
-    commit(repository, 'New unpublished unsafe identity', ['totec448', 'gmail.com'].join('@'));
+    commit(repository, 'New unpublished unsafe identity', unsafeEmail);
     expect(verify(repository).status).toBe(1);
   });
 
   it.each([
-    'https://github.com/example/chat-on-steroids.git',
-    'https://github.com/totec448-spec/chat-on-steroids-extra.git',
-    'https://github.com.example/totec448-spec/chat-on-steroids.git'
-  ])('does not trust an unrelated upstream URL (%s)', (url) => {
+    'https://github.com/totec448-spec/chat-on-steroids.git',
+    'https://github.com/Shota-Zaki/chat-on-steroids-extra.git',
+    'https://github.com.example/Shota-Zaki/chat-on-steroids.git'
+  ])('does not trust an unrelated or upstream origin/main (%s)', (url) => {
     const repository = makeRepository();
-    execFileSync('git', ['remote', 'add', 'upstream', url], { cwd: repository });
-    execFileSync('git', ['update-ref', 'refs/remotes/origin/main', 'HEAD'], { cwd: repository });
-    commit(repository, 'Unpublished identity', ['totec448', 'gmail.com'].join('@'));
-    execFileSync('git', ['update-ref', 'refs/remotes/upstream/main', 'HEAD'], { cwd: repository });
-    expect(verify(repository).status).toBe(1);
-  });
-
-  it('does not fall back to fork history when canonical main has not been fetched', () => {
-    const repository = makeRepository();
-    execFileSync('git', ['remote', 'add', 'upstream', 'https://github.com/totec448-spec/chat-on-steroids.git'], { cwd: repository });
-    commit(repository, 'Only published on a fork', ['totec448', 'gmail.com'].join('@'));
+    execFileSync('git', ['remote', 'add', 'origin', url], { cwd: repository });
+    commit(repository, 'Unpublished identity', unsafeEmail);
     execFileSync('git', ['update-ref', 'refs/remotes/origin/main', 'HEAD'], { cwd: repository });
     expect(verify(repository).status).toBe(1);
   });
 
-  it('still rejects unsafe identity a push would add ahead of origin/main', () => {
+  it('does not fall back to upstream when the hardened fork main has not been fetched', () => {
     const repository = makeRepository();
-    const privateEmail = ['totec448', 'gmail.com'].join('@');
+    execFileSync('git', ['remote', 'add', 'origin', upstreamHttps], { cwd: repository });
+    execFileSync('git', ['remote', 'add', 'published', forkHttps], { cwd: repository });
+    commit(repository, 'Only published on upstream-shaped origin/main', unsafeEmail);
     execFileSync('git', ['update-ref', 'refs/remotes/origin/main', 'HEAD'], { cwd: repository });
-    commit(repository, 'Unsafe identity not published yet', privateEmail);
+    expect(verify(repository).status).toBe(1);
+  });
+
+  it('still rejects unsafe identity a push would add ahead of hardened fork main', () => {
+    const repository = makeRepository();
+    execFileSync('git', ['remote', 'add', 'origin', forkHttps], { cwd: repository });
+    execFileSync('git', ['update-ref', 'refs/remotes/origin/main', 'HEAD'], { cwd: repository });
+    commit(repository, 'Unsafe identity not published yet', unsafeEmail);
 
     const result = verify(repository);
     expect(result.status).toBe(1);
     expect(result.stderr).toContain('non-noreply maintainer email');
-    expect(result.stderr).not.toContain(privateEmail);
+    expect(result.stderr).not.toContain(unsafeEmail);
   });
 
   it('keeps annotated tags reachable from HEAD under the same checks', () => {

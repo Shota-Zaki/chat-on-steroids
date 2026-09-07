@@ -9,6 +9,7 @@ GitHub Actionsは使用しません。
 - Chat側: Static Review / Implementationを継続
 - Local Verification: CodexへDeferred
 - Pass判定: 実際にLocal Command / Package / 実機確認を実行した項目のみ
+- Release: V-013完了とLocal Verification成功までBlocked
 
 ## V-001 — Full local verification
 
@@ -114,7 +115,7 @@ Failure時はbeta Versionを機械的にDowngradeせず、再現条件・stack /
 
 **目的:** 実際のChatGPT + Chrome Extension + Local Appで、Static Reviewだけでは確認できないBoundaryを検証する。
 
-**確認:** 
+**確認:**
 
 - Extension Pairing
 - Session Attribution
@@ -214,7 +215,7 @@ npx vitest run test/renderer-state.test.ts test/renderer-timeline.test.ts test/r
 npm run verify
 ```
 
-**静的 / Unit確認:** 
+**静的 / Unit確認:**
 
 - Renderer一般DOM Observerは`ja-ui.ts`だけが所有する
 - `ja-runtime.ts`はPure TranslatorでありDOM Observerを持たない
@@ -224,7 +225,7 @@ npm run verify
 - `Could not check for a newer version: E  42.`のError本文内部の2 Spaceが維持される
 - Extension側もVersion / Run ID / Request ID / Error Capture等の内部文字列を保持する
 
-**Packaged / 実画面確認:** 
+**Packaged / 実画面確認:**
 
 - User Goal本文が`Starting` / `Saved`等の辞書語と一致しても`#activeGoalRow`内で変形しない
 - User File名が辞書語と一致しても`#composerImages`のData表示・属性で変形しない
@@ -244,30 +245,148 @@ npm run verify
 
 ## V-013 — Fork commit author privacy / noreply history
 
-**対象:** `scripts/verify-public-history.mjs`、`main..work`の到達可能な未統合Commit History
+**対象:** `scripts/verify-public-history.mjs`、`test/public-history-privacy.test.ts`、`main..work`の到達可能な未統合Commit History
 
-**状態:** 未検証 / Codex検証待ち / **Release Blocker**
+**状態:** **History Rewrite required / Codex検証待ち / Release Blocker**
 
-**背景:** Fork側の到達可能な`work` Commit metadataに、GitHub noreplyではないMaintainer emailが含まれることをStatic確認した。値そのものをDocumentへ記録しない。従来のPrivacy Gateはupstream Maintainerだけを検査していたため、このForkのAuthor / Committer identityを検出できなかった。
+**Static判断:** 現在の`main..work`に、GitHub noreplyではないFork Maintainer Author / Committer metadataを持つ到達可能な未統合Commitが存在することをGitHub上で確認した。個人メール値そのものはDocument / PR本文へ記録しない。したがって「Rewriteが必要か」は未決ではなく、**`work`の未統合History Rewriteが必要**と判断する。
 
-**目的:** Fork用Privacy Gateが`Shota-Zaki`のAuthor / Committerを検査し、公開前のFork Historyに個人メールアドレスを残さないことを確認する。
+**Privacy Gate修正範囲:**
 
-**Command候補:**
+- Maintainer = `Shota-Zaki`
+- 許可Email = GitHub `users.noreply.github.com`形式のみ
+- Published Boundary = URLが完全一致する`Shota-Zaki/chat-on-steroids` Remoteの`main`
+- Exact Fork Remoteが無い場合、`origin/main`へFallbackしない
+- Exact Fork RemoteはあるがFetched `main`が無い場合、公開済みCommitを0件として扱う
+- upstream / unrelated RemoteをForkのPublished BoundaryとしてTrustしない
+- HEADへ到達しない無関係Refは検査対象へ混ぜない
+- Regression TestをFork Maintainer / Fork Remoteへ移行し、非noreply Test Fixtureには実在個人アドレスを使用しない
+
+**目的:** Fork用Privacy Gateと実Historyの両方を整合させ、公開前のFork Historyに個人メールアドレスを残さない。
+
+### Codex手順
+
+① **Remote / HEADを再取得し、Rewrite対象を固定する**
 
 ```sh
 git fetch --all --prune
-npm run verify:privacy
-git log main..work --format='%H %an <%ae> | %cn <%ce>'
+git remote -v
+git rev-parse main work
+git rev-list --left-right --count main...work
 ```
 
-**確認:**
+- Fork `main` / `work`とupstream `main`の現在値をGitHub側と照合する。
+- PR #1がDraftであることを確認する。
+- 新Branchは作成しない。
 
-- `scripts/verify-public-history.mjs`が`Shota-Zaki/chat-on-steroids`の`main`をPublished Boundaryとして扱う
-- `main..work`のMaintainer Author / CommitterがGitHub noreply形式のみ
-- Privacy Gate Failureを`--no-verify`等でBypassしない
-- Remediationが必要な場合、`main`は変更せず、未統合の`work` Historyだけを対象に安全なHistory Rewrite Planを作成する
-- Rewrite後はPR #1をDraftのまま維持し、`npm run verify:privacy`と`npm run verify`を再実行する
+② **今後のMaintainer IdentityをGitHub noreplyへ固定する**
+
+```sh
+git config user.name Shota-Zaki
+git config user.email 246847859+Shota-Zaki@users.noreply.github.com
+```
+
+Repository Local Configを優先する。個人Emailは設定・Log・Documentへ転記しない。
+
+③ **未統合HistoryをLocalだけで監査する**
+
+```sh
+git log main..work --format='%H %an <%ae> | %cn <%ce>'
+npm run verify:privacy
+```
+
+- non-noreply Maintainer identityを検出する。
+- Terminal上の個人値をIssue / PR / DocumentへCopyしない。
+- Privacy Gateを`--no-verify`等でBypassしない。
+
+④ **Rewrite前BackupをBranchではなくBundleで保存する**
+
+```sh
+git bundle create ../chat-on-steroids-v013-before-rewrite.bundle main work
+```
+
+新しいGit Branchを作らず、Rollback用のLocal BundleだけをRepository外へ保存する。
+
+⑤ **`main`を触らず、`main..work`だけのMetadataをRewriteする**
+
+- 対象は`work`へ到達し、Fork `main`へ到達しないCommitだけ。
+- `Shota-Zaki` MaintainerのAuthor / CommitterがGitHub noreplyでない場合だけnoreplyへ置換する。
+- 他ContributorのAuthor / Committer identity、Commit Message、Tree内容は変更しない。
+- `main` / upstream HistoryはRewriteしない。
+- `--reset-author`等で全AuthorをMaintainerへ一括置換しない。
+- 使用可能なら`git filter-repo`の`--refs work` + reviewed callbackを優先する。Toolが無い場合は、その場で別方式へ機械的に切り替えず、Tree不変を検証できる方式を選ぶ。
+
+Rewrite前に次を保存する。
+
+```sh
+old_work=$(git rev-parse work)
+old_tree=$(git rev-parse 'work^{tree}')
+```
+
+⑥ **Tree / Diff不変を検証する**
+
+```sh
+test "$old_tree" = "$(git rev-parse 'work^{tree}')"
+git diff --exit-code "$old_work^{tree}" 'work^{tree}'
+git diff --stat main...work
+```
+
+History Rewriteの目的はMetadata修復だけであり、Source / Documentの最終Tree内容を変えない。
+
+⑦ **Privacy GateとFull VerificationをLocal実行する**
+
+```sh
+npm run verify:privacy
+npm run verify
+```
+
+実際にexit code 0を確認した場合だけPassとする。V-001〜V-011の実機 / Package項目は各項目どおり別途実施する。
+
+⑧ **Remote競合が無いことを再確認してから`work`だけForce-with-leaseする**
+
+```sh
+git fetch origin work
+git rev-parse refs/remotes/origin/work
+```
+
+取得したRemote `work`がRewrite開始時に固定した旧Remote HEADと一致する場合だけ、旧SHAを明示した`--force-with-lease`で`work`を更新する。`main`へPushしない。Remoteが進んでいた場合はForce Pushせず停止し、差分を再評価する。
+
+⑨ **Push後にGitHub正本を再取得する**
+
+- `work` HEAD / `main` HEAD / upstream `main` HEAD
+- `main...work` ahead / behind
+- PR #1がDraftのまま
+- `main..work`のMaintainer Author / CommitterがGitHub noreplyのみ
+- `npm run verify:privacy` / `npm run verify`の対象CommitがPush後HEADと一致
+
+**完了条件:** History Rewrite、Privacy Gate、Local Verificationの3点が同じ最終`work` HEADに対して確認済みであること。完了前はMerge / Release禁止。
+
+## GitHub Repository Settings — Manual follow-up
+
+Repository Admin設定は現在のChat Connectorから安全に変更できないため、次をManual設定項目として残す。
+
+### Issues
+
+- 現在RepositoryではGitHub Issuesが無効。
+- `.github/ISSUE_TEMPLATE/*`が存在し、README / CONTRIBUTINGも通常Bug / Feature報告にIssuesを参照しているため不整合。
+- **推奨:** Issuesを有効化する。
+- Security VulnerabilityはIssuesではなくGitHub Private Vulnerability Reporting / Security Advisoryを使用する現行`SECURITY.md`方針を維持する。
+
+### `main` protection / ruleset
+
+- 現在`main`はProtectedではなく、Repository Rulesetも確認できない。
+- **推奨:** `main`へのDirect Push、Force Push、Deleteを拒否し、PR経由を必須にする。
+- 必要に応じてReview Approvalを要求する。
+- このForkではGitHub ActionsをVerification Authorityにしないため、GitHub Actions CheckをRequired Status Checkへ設定しない。
+- `work`運用とPR #1 Draft方針は維持する。
+
+### GitHub Actions
+
+- `.github/workflows/`はupstream互換 / 参照目的で残してよい。
+- Workflowを手動実行・再実行しない。
+- GitHub Check / Workflow RunをPass判定に使わない。
+- Repository LevelのActions Permission状態は現在のConnectorでは確認・変更できなかったため、ForkでActions自体を無効化する運用ならRepository SettingsでManual確認する。
 
 ## Deferred rule
 
-Chatで新しくLocal Verificationが必要になった場合は、このDocumentへ`V-xxx`を追加して後続作業へ進む。Chat内ではLocal Verification待ちを理由に作業を停止しない。
+Chatで新しくLocal Verificationが必要になった場合は、既存V-001〜V-013へ統合できるものは重複追加せず追記する。Chat内ではLocal Verification待ちを理由に作業を停止しない。

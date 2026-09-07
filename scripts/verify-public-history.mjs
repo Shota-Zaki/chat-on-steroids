@@ -89,8 +89,9 @@ function checkMessageFile(messagePath) {
  * not something a pre-push hook should be able to demand.
  *
  * A fork's origin may lag another remote. Select the hardened fork by exact repository URL,
- * never by the remote name. Without that configured remote, retain the origin/main fallback.
- * If the configured hardened-fork remote has no fetched main, exempt nothing.
+ * never by the remote name. If that exact remote or its fetched main is absent, exempt nothing.
+ * Never substitute origin/main: origin may point at upstream, which is not this fork's published
+ * boundary and must not exempt work-only maintainer history.
  */
 function publishedCommits() {
   const remotes = String(runGit(['remote']).stdout).split(/\r?\n/).filter(Boolean);
@@ -98,7 +99,8 @@ function publishedCommits() {
     const url = String(runGit(['remote', 'get-url', remote]).stdout).trim();
     return /^(?:https?:\/\/github\.com\/|ssh:\/\/git@github\.com\/|git@github\.com:)Shota-Zaki\/chat-on-steroids(?:\.git)?\/?$/i.test(url);
   });
-  const publishedRef = `refs/remotes/${canonical ?? 'origin'}/main`;
+  if (!canonical) return new Set();
+  const publishedRef = `refs/remotes/${canonical}/main`;
   const ref = runGit(['rev-parse', '--verify', '--quiet', publishedRef], {
     allowFailure: true,
   });
