@@ -118,6 +118,8 @@ ProjectはElectron `43.4.1`をPinしています。
 - Windows版はmainPC上の実機結果を正本とする
 - 未実行項目は未検証として明記し、Pass扱いしない
 
+**この方針はFork固有の恒久ルールです。GitHub Actionsが存在・有効・無効のいずれであっても、このForkのVerification手順では使用しません。**
+
 ## Verification状態
 
 ### 完了
