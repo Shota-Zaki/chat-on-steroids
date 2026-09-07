@@ -58,7 +58,31 @@ const EXTRA = new Map<string, string>([
   ['Restore missing or unresponsive work chats. Goal and Loop chats recover automatically.', '見失った、または応答しない作業チャットを復旧します。Goal・Loopチャットは自動的に復旧します。'],
   ['No supported choices', '対応する候補がありません'],
   ['Usage token divisor', '使用量トークン除数'],
-  ['Cached-input cost multiplier', 'キャッシュ入力コスト倍率']
+  ['Cached-input cost multiplier', 'キャッシュ入力コスト倍率'],
+  ['Untitled session', '無題のセッション'],
+  ['Delete this recorded session', 'この記録済みセッションを削除'],
+  ['Block unattributed calls: every call the app cannot attribute to a chat is refused and the chat is told to stop', '出所不明の呼び出しをブロック: 送信元チャットを特定できない呼び出しを拒否します'],
+  ['Allow unattributed calls: self-contained calls run again even when the app cannot prove which chat sent them', '出所不明の呼び出しを許可: 送信元チャットを特定できなくても自己完結型の呼び出しを実行します'],
+  ['Release this chat: its tool calls run again', 'このチャットのブロックを解除: ツール呼び出しを再開します'],
+  ['Block this chat: every tool call it makes is refused and it is told to stop', 'このチャットをブロック: すべてのツール呼び出しを拒否します'],
+  ['Open this chat in Chrome', 'このチャットをChromeで開く'],
+  ['Sub-agent history', 'サブエージェント履歴'],
+  ['Unavailable project', '利用できないプロジェクト'],
+  ['New chat in this project', 'このプロジェクトで新しいチャットを作成'],
+  ['Show more', 'さらに表示'],
+  ['Unattributed activity', '出所不明のアクティビティ'],
+  ['Recording is off', '記録はオフ'],
+  ['scroll for older history', 'スクロールして過去の履歴を表示'],
+  ['one live now', '現在1件稼働中'],
+  ['not a chat', 'チャットではありません'],
+  ['resumed', '再開済み'],
+  ['prime', 'Prime'],
+  ['worker', 'Worker'],
+  ['sleeping', '待機中'],
+  ['finished', '完了'],
+  ['active', '稼働中'],
+  ['invited', '招待済み'],
+  ['waking', '起動中']
 ]);
 
 const EXTRA_PATTERNS: Array<[RegExp, (...parts: string[]) => string]> = [
@@ -72,7 +96,20 @@ const EXTRA_PATTERNS: Array<[RegExp, (...parts: string[]) => string]> = [
   [/^(\d+)h window · (.+)$/, (_all, hours, rest) => `${hours}時間枠 · ${translateJapaneseUiText(rest)}`],
   [/^Resets (.+)$/, (_all, at) => `リセット: ${at}`],
   [/^(.+) remaining$/, (_all, value) => `残り ${value}`],
-  [/^(.+) · checked (.+)$/, (_all, label, at) => `${label} · 確認 ${at}`]
+  [/^(.+) · checked (.+)$/, (_all, label, at) => `${label} · 確認 ${at}`],
+  [/^Rename \/(.+)$/, (_all, name) => `/${name} の名前を変更`],
+  [/^Stop sharing \/(.+)$/, (_all, name) => `/${name} の共有を停止`],
+  [/^(Collapse|Expand) (\d+) sub-agents$/, (_all, action, count) => `${count}件のサブエージェントを${action === 'Collapse' ? '折りたたむ' : '展開'}`],
+  [/^(\d+) sub-agents · (\d+) active$/, (_all, total, active) => `${total}件のサブエージェント · ${active}件稼働中`],
+  [/^Sub-agent history · (\d+)$/, (_all, count) => `サブエージェント履歴 · ${count}件`],
+  [/^Unattributed activity · (\d+)$/, (_all, count) => `出所不明のアクティビティ · ${count}件`],
+  [/^Show more tasks in (.+)$/, (_all, project) => `${project} のタスクをさらに表示`],
+  [/^(\d+) retained sessions?$/, (_all, count) => `${count}件の保存済みセッション`],
+  [/^(\d+) of (\d+) retained sessions? shown$/, (_all, shown, total) => `${total}件中${shown}件の保存済みセッションを表示`],
+  [/^Choose a folder to share — step 1\.$/, () => '共有するフォルダーを選択してください — ステップ1。'],
+  [/^Create a tunnel and paste its ID — step 2\.$/, () => 'Tunnelを作成してIDを貼り付けてください — ステップ2。'],
+  [/^Add a restricted API key — step 3\.$/, () => 'Restricted APIキーを追加してください — ステップ3。'],
+  [/^cloudflared was not found on this computer\.$/, () => 'このPCにcloudflaredが見つかりません。']
 ];
 
 export function translateJapaneseUiText(value: string): string {
@@ -100,18 +137,22 @@ const PROTECTED = [
   'textarea',
   '#timeline',
   '#handoffBox',
-  '#sessionList',
   '#inputQueue',
   '#taskPlanPreview',
   '#finishQueue',
   '#activeGoalRow',
   '#composerImages',
-  '#rootList',
   '#connectorCards',
   '#fullFeed',
   '#homeFeed',
   '#swarmList',
-  '#goalModelList'
+  '#goalModelList',
+  '.sess-top > b',
+  '.project-name',
+  '.session-tooltip',
+  '.root > b',
+  '.root > span',
+  '.root-rename'
 ].join(',');
 
 function protectedNode(node: Node): boolean {
