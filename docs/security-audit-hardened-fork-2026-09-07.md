@@ -64,6 +64,29 @@ ChatGPT上のExtension-owned UIは`.clf-*` ContainerをPresentation Layerとし�
 
 既存のTool Payload / Result、Bootstrap本文、Stage Detail等の保護境界は維持します。Localizationは操作Label、Status、Step名、説明文等のApp-owned Presentationだけを対象にします。
 
+## 修正済み — H-07: Renderer Runtime Localizationの重複ObserverがData境界を迂回し得る
+
+`src/renderer/ja-runtime.ts`が動的文字列のLocalizationだけでなく、Document全体を監視する独自`MutationObserver`も所有していました。この保護Selectorは`src/renderer/ja-ui.ts`の一般Localization Observerより狭く、少なくとも次のData混在Surfaceを保護していませんでした。
+
+- `#activeGoalRow` — App-owned LabelとUserが入力したGoal本文を同じRowへ描画
+- `#composerImages` — User File名を`alt` / Control Labelへ利用
+
+そのためUser Goal本文やFile名が`Starting`、`Saved`等のLocalization辞書と偶然一致した場合、表示時だけ書き換わる余地がありました。
+
+Root Causeを重複Observer Ownershipと判断し、`ja-runtime.ts`をPure Translatorへ縮小しました。Runtime文字列は`ja-ui.ts`の保護境界付き一般Observerから呼び出し、Renderer一般DOM監視は`ja-ui.ts`だけが所有します。`#activeGoalRow`と`#composerImages`は一般Localization対象外のまま維持します。
+
+## 修正済み — H-08: Dynamic Localization Patternが埋め込みDataを空白正規化し得る
+
+Renderer / ExtensionのLocalization Patternは、全文を`trim().replace(/\s+/g, ' ')`で正規化してからRegExpへ渡していました。静的Labelの照合には有効ですが、Pattern CaptureへFolder名、Path、Model / Run ID、Version、Diagnostic Error等が含まれる場合、そのDataの連続空白まで変更します。
+
+例:
+
+- `Rename /My  Folder` → Folder名内部の2 Spaceを1 Spaceへ変形し得る
+- `Extension folder: C:\\My  Folder` → Path表示を変形し得る
+- `Could not check for a newer version: E  42.` → Error本文を変形し得る
+
+Exact Dictionaryは従来通りWhitespace Normalizationで照合しますが、Dynamic Patternは元文字列の外側だけを`trim()`してMatchする方式へ統一しました。対象はRendererの`ja.ts` / `ja-ui.ts` / `ja-runtime.ts` / `ja-timeline.ts` / `ja-composite.ts` / `ja-setup.ts`と`extension/ja.js`です。これによりApp-owned周辺文言だけを翻訳し、Pattern Captureされた動的値の内部文字列は保持します。
+
 ## 確認済みの既存Security Control
 
 - Approved RootのPath Canonicalization / Link Escape Check
@@ -142,6 +165,8 @@ ProjectはElectron `43.4.1`をPinしています。
 - Security Contract Regression追加
 - Japanese UI Boundary Regression追加
 - Extension Goal / Generated Message / Diagnostic Localization Boundary Regression追加
+- Renderer general Observer Ownership Regression追加
+- Dynamic Localization Payload Preservation Regression追加
 - No-release Update Regression追加
 - MCP / File System / Command / Desktop / Renderer / Secret / Update / Packaging BoundaryのStatic Review
 
