@@ -25,20 +25,27 @@
 - 実行していないTestをPass扱いしない
 - ReleaseはCodex Verification完了前に行わない
 
-## 現在の保留事項
+## 日本語化の安全境界
 
-`test/japanese-ui.test.ts`にはNative File Dialogの日本語表示を要求するRegression Contractがありますが、`src/main/ipc.ts`側の対応はまだ完了していません。
+このForkでは、日本語化の網羅性よりSystemの動作安定性を優先します。
 
-Repository整理ではRuntime / IPCの挙動へ影響し得る変更を避けるため、この差分はコード修正せずVerification Backlogへ明示しています。
+安全にPresentationだけを変更できる表示は日本語化しますが、翻訳目的だけで次の領域へ変更を加えません。
 
-対象UI:
+- Runtime Control Flow
+- Main Process / IPC
+- Browser Bridge / MCP
+- Permission / Capability
+- Update / Release Trust
+- Model検出 / Session Attribution
+- Tool / Protocol Contract
+- Persistence
+- Browser Automation
+- MutationObserver / DOM Selector / Dynamic Pattern / Origin判定
+- Extension transport
 
-- Approved Folder picker
-- Project Folder picker
-- Tunnel executable picker
-- Image picker
+このため、一部のNative Dialog、Diagnostic表示、動的UI等に英語が残る場合があります。Security、Correctness、操作性に問題がなければ、残存英語だけを理由に実装やReleaseをBlockしません。
 
-Diagnostic Error本文はLocalization対象外として原文保持する方針です。
+以前追加されたNative File Dialog日本語化のRegression Contractは、この方針と競合するため必須条件から外しました。`src/main/ipc.ts`のRuntime実装は変更していません。
 
 ## 履歴・参考資料
 
@@ -76,6 +83,7 @@ Subsystem変更時の背景資料として使用します。現行実装と矛�
 4. Local / Runtime検証待ちはCodex Verification Backlogへ集約する。
 5. 過去Auditは参照切れを避けるため、リンク確認なしに削除・移動しない。
 6. Runtime Contract、Tool名、Protocol、Error本文等をDocument整理の都合で変更しない。
+7. 日本語化のためにRuntime / Security / Protocol境界へ変更を持ち込まない。
 
 ## Repository整理の方針
 
