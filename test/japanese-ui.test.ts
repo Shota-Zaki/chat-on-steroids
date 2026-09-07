@@ -7,6 +7,8 @@ describe('Japanese UI localization', () => {
     expect(translateJapaneseUiText('Workspace')).toBe('ワークスペース');
     expect(translateJapaneseUiText('Allow unattributed calls')).toBe('出所不明の呼び出しを許可');
     expect(translateJapaneseUiText('Connected · Port 8765')).toBe('接続済み · ポート 8765');
+    expect(translateJapaneseUiText('Rename /project')).toBe('/project の名前を変更');
+    expect(translateJapaneseUiText('Open this chat in Chrome')).toBe('このチャットをChromeで開く');
     expect(translateJapaneseUiText('Usage could not be loaded. Try Refresh.')).toBe(
       '使用状況を読み込めませんでした。「更新」をお試しください。'
     );
@@ -41,20 +43,24 @@ describe('Japanese UI localization', () => {
     expect(popup).toContain('セッション記録');
   });
 
-  it('keeps user/model content and diagnostic surfaces outside the renderer localization boundary', () => {
+  it('keeps user/model content and exact contract surfaces outside renderer localization', () => {
     const source = readFileSync(new URL('../src/renderer/ja-ui.ts', import.meta.url), 'utf8');
-    for (const protectedId of [
+    for (const protectedSelector of [
       '#timeline',
       '#handoffBox',
-      '#sessionList',
-      '#rootList',
       '#connectorCards',
       '#fullFeed',
       '#homeFeed',
-      '#swarmList'
+      '#swarmList',
+      '.sess-top > b',
+      '.project-name',
+      '.root > b',
+      '.root > span'
     ]) {
-      expect(source).toContain(`'${protectedId}'`);
+      expect(source).toContain(`'${protectedSelector}'`);
     }
+    expect(source).not.toContain("'#sessionList'");
+    expect(source).not.toContain("'#rootList'");
   });
 
   it('keeps tool payloads and bootstrap text outside the companion localization boundary', () => {
@@ -69,5 +75,12 @@ describe('Japanese UI localization', () => {
     ]) {
       expect(source).toContain(`'${protectedSelector}'`);
     }
+  });
+
+  it('requires the Japanese companion file in packaged runtime and release zip gates', () => {
+    const smoke = readFileSync(new URL('../scripts/smoke-packaged-runtime.mjs', import.meta.url), 'utf8');
+    const release = readFileSync(new URL('../.github/workflows/release.yml', import.meta.url), 'utf8');
+    expect(smoke).toContain("'extension/ja.js'");
+    expect(release).toContain('content.js ja.js fiber.js');
   });
 });
