@@ -203,8 +203,9 @@
     if (!normalized) return value;
     const mapped = exact.get(normalized);
     if (mapped) return mapped;
+    const trimmed = String(value || '').trim();
     for (const [pattern, replace] of patterns) {
-      const match = pattern.exec(normalized);
+      const match = pattern.exec(trimmed);
       if (match) return replace(...match);
     }
     return value;
