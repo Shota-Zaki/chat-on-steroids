@@ -101,13 +101,18 @@ describe('Japanese UI localization', () => {
       ['Handoff saved, opening the fresh chat', '引き継ぎを保存しました。新しいチャットを開いています'],
       ['OpenRouter key required', 'OpenRouter APIキーが必要です'],
       ['add specific goal', '具体的なGoalを追加'],
-      ['add specific loop', '具体的なLoopを追加']
+      ['add specific loop', '具体的なLoopを追加'],
+      ['working…', '処理中…'],
+      ['A worker chat is already driven by its prime.', 'ワーカーチャットはすでにPrimeによって制御されています。'],
+      ['Pick Goal or Loop above first — Off writes nothing.', '先にGoalまたはLoopを選択してください。Offではメッセージを生成しません。']
     ]) {
       expect(source).toContain(english);
       expect(source).toContain(japanese);
     }
     expect(source).toContain('Replies as you until this chat’s goal is reached, then stops. Written with');
     expect(source).toContain('このチャットのGoalを達成するまであなたの代わりに返信し、達成後に停止します。');
+    expect(source).toContain('Change or clear what this chat has to reach');
+    expect(source).toContain('このチャットで達成する内容を変更またはクリアします');
     expect(source).toContain('/^fiber v(.+) · run (.+)$/');
     expect(source).toContain('`fiber v${version} · 実行 ${runId}`');
   });
