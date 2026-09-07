@@ -20,6 +20,7 @@ describe('Japanese UI localization', () => {
     expect(shouldInstallJapaneseUi({ protocol: 'http:', hostname: 'localhost' })).toBe(true);
     expect(shouldInstallJapaneseUi({ protocol: 'http:', hostname: '127.0.0.1' })).toBe(true);
     expect(shouldInstallJapaneseUi({ protocol: 'http:', hostname: '::1' })).toBe(true);
+    expect(shouldInstallJapaneseUi({ protocol: 'http:', hostname: '[::1]' })).toBe(true);
     expect(shouldInstallJapaneseUi({ protocol: 'https:', hostname: 'local.test' })).toBe(false);
     expect(shouldInstallJapaneseUi({ protocol: 'https:', hostname: 'example.com' })).toBe(false);
     expect(shouldInstallJapaneseUi(null)).toBe(false);
