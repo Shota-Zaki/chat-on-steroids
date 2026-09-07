@@ -6,9 +6,11 @@ release provenance, or verification policy conflicts with upstream guidance.
 
 This is a public repository. Never add Claude provenance session URLs or session trailers to
 commit messages, files, release notes, logs, or generated artifacts. Maintainer commits must use
-a GitHub noreply address; never use a personal mailbox or a private local path. Before every
+a GitHub noreply address; never use a personal mailbox or a private local path. Before every local
 commit, push, tag, or release, run `npm run verify:privacy`. The versioned Git hooks installed by
-`npm run hooks:install` enforce the same policy for Claude-created commits.
+`npm run hooks:install` enforce the same policy for Claude-created local commits. In a Chat
+environment that cannot execute this command, follow `AGENTS.override.md`: do not claim it passed,
+keep the Local Verification deferred to the Codex backlog, and do not introduce private values.
 
 Do not bypass these guards with `--no-verify`. If a privacy check blocks a change, remove the
 private value at its source and create a new clean commit instead.
