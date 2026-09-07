@@ -129,7 +129,9 @@ describe('Japanese UI localization', () => {
       ['A worker chat is already driven by its prime.', 'ワーカーチャットはすでにPrimeによって制御されています。'],
       ['This chat is blocked in the app. Release it there to drive it again.', 'このチャットはアプリでブロックされています。再開するにはアプリ側でブロックを解除してください。'],
       ['Add an OpenRouter API key in the app first.', '先にアプリでOpenRouter APIキーを追加してください。'],
-      ['Pick Goal or Loop above first — Off writes nothing.', '先にGoalまたはLoopを選択してください。Offではメッセージを生成しません。']
+      ['Pick Goal or Loop above first — Off writes nothing.', '先にGoalまたはLoopを選択してください。Offではメッセージを生成しません。'],
+      ['Named from this chat’s own record.', 'このチャット自身の記録から名前を付けています。'],
+      ['Originally:', '元の表示:']
     ]) {
       expect(source).toContain(english);
       expect(source).toContain(japanese);
