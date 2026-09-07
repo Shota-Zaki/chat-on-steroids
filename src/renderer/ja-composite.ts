@@ -25,9 +25,10 @@ const PATTERNS: Array<[RegExp, (...parts: string[]) => string]> = [
   [/^Scheduled (.+)$/, (_all, when) => `予定: ${when}`],
   [/^(\d+) pending$/, (_all, n) => `${n}件待機中`],
   [/^(\d+) delivered$/, (_all, n) => `${n}件送信済み`],
+  [/^(\d+) pending · (\d+) delivered(?: · chat bound)?$/, (all, pending, delivered) => `${pending}件待機中 · ${delivered}件送信済み${all.endsWith('chat bound') ? ' · チャット紐付け済み' : ''}`],
   [/^Clear session — ends this run and every worker in it$/, () => 'セッションをクリア — この実行とすべてのワーカーを終了'],
   [/^Clear session — ends (.+) and frees its slot$/, (_all, id) => `セッションをクリア — ${id}を終了してスロットを解放`],
-  [/^([\d,.]+) characters · from (\d+) events \(~([\d,.]+) tokens\) · (.+)$/, (_all, chars, events, tokens, ago) => `${chars}文字 · ${events}イベントから作成（約${tokens}トークン） · ${ago}`]
+  [/^(.+) characters · from (\d+) events \(~(.+) tokens\) · (.+)$/, (_all, chars, events, tokens, ago) => `${chars}文字 · ${events}イベントから作成（約${tokens}トークン） · ${ago}`]
 ];
 
 const ATTRS = ['title', 'aria-label'] as const;
