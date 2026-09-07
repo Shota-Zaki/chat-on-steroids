@@ -1,0 +1,139 @@
+# Codex Verification Backlog
+
+このDocumentは、Chatで進行したStatic Review / Implementationのうち、Local実行が必要なVerificationを次回Codex作業でまとめて実施するためのBacklogです。
+
+GitHub Actionsは使用しません。
+
+## Status
+
+- Chat側: Static Review / Implementationを継続
+- Local Verification: CodexへDeferred
+- Pass判定: 実際にLocal Command / Package / 実機確認を実行した項目のみ
+
+## V-001 — Full local verification
+
+**対象:** 次回Codex開始時の`work` HEAD
+
+**目的:** TypeScript / Unit / Integration / Privacy Gateをまとめて確認する。
+
+**Command:**
+
+```sh
+npm ci
+npm run verify
+```
+
+**確認:** exit code 0。Failure時は最初のRoot Causeから修正して再実行する。
+
+## V-002 — Japanese UI regression
+
+**対象:** `src/renderer/ja-*.ts`、`extension/ja.js`、日本語化済みRenderer / Popup / Native UI
+
+**目的:** 日本語化が機械契約・User Data・既存Renderer Testを壊していないことを確認する。
+
+**Command候補:**
+
+```sh
+npx vitest run test/japanese-ui.test.ts
+npx vitest run test/renderer-state.test.ts test/renderer-timeline.test.ts test/renderer-layout.test.ts
+npx vitest run test/extension-popup.test.ts test/extension.test.ts
+```
+
+**確認:** `exec_command`、`write_stdin`、`session_finish`、`NO_REPLY`、Error Code、User / Assistant本文、Tool引数 / Result、Pathが翻訳されていないこと。
+
+## V-003 — Hardened defaults regression
+
+**対象:** `src/main/config.ts`
+
+**目的:** Fresh InstallがFail Safeで、既存Config Migrationを勝手に拡張しないことを確認する。
+
+**Command:**
+
+```sh
+npx vitest run test/config.test.ts test/feature-parity.test.ts
+```
+
+**期待:** `readOnly=true`、browse/search/read/metadataのみ初期ON、`allowUnattributedCalls=false`。
+
+## V-004 — Hardened release trust / no-release update
+
+**対象:** `src/shared/release.ts`、`src/main/update.ts`、`src/main/version.ts`
+
+**目的:** Update / Manual Release / Extension RecoveryがForkだけをTrustし、ForkにReleaseが無い404を正常状態として扱うことを確認する。
+
+**Command:**
+
+```sh
+npx vitest run test/hardened-release-source.test.ts test/hardened-no-release-update.test.ts test/update.test.ts
+```
+
+**確認:** 404 latest-releaseのみ`idle / error=null`。503、Checksum404、Asset Failure、Hash MismatchはFailureのまま。
+
+## V-005 — Windows package / runtime smoke
+
+**対象OS:** Windows mainPC
+
+**目的:** Windows版を実Packageで起動し、日本語UIとSecurity Defaultを確認する。
+
+**Command候補:**
+
+```powershell
+npm ci
+npm run dist:x64
+```
+
+生成Installerを検証用環境へInstallし、次を確認する。
+
+- 起動成功
+- Tray Menu日本語
+- Fresh InstallがRead-only
+- File mutation / command / Desktop / Clipboardが初期OFF
+- Update Errorが出ない
+- Chrome Extension Folderを開ける
+- Popupが日本語
+- ChatGPT上のExtension-owned UIが日本語
+
+## V-006 — Windows node-pty / interactive terminal
+
+**対象OS:** Windows mainPC
+
+**目的:** `node-pty 1.2.0-beta.15`の既知Regressionが本Repositoryの`tty=true` / `write_stdin`へ影響するか確認する。
+
+**確認Scenario:**
+
+1. `exec_command`を`tty=true`で開始
+2. 最初のOutput / Promptを待つ
+3. `write_stdin`で入力
+4. 複数回stdin送信
+5. Processが早期終了しない
+6. Exit / Output回収が正常
+
+Failure時はbeta Versionを機械的にDowngradeせず、再現条件・stack / error・ConPTY挙動を記録してDependency判断する。
+
+## V-007 — Live MCP / Chrome pairing
+
+**目的:** 実際のChatGPT + Chrome Extension + Local Appで、Static Reviewだけでは確認できないBoundaryを検証する。
+
+**確認:** 
+
+- Extension Pairing
+- Session Attribution
+- Core MCP接続
+- Permission OFF時の`TOOL_DISABLED`
+- Unattributed CallのFail Closed
+- Compact & Resume
+- Worker Chat / Multi-agent
+
+## V-008 — Release candidate integrity
+
+Releaseを作る段階で実施する。
+
+- `SHA256SUMS.txt`生成
+- Windows Installer Hash独立確認
+- Extension ZIPに`ja.js`が含まれる
+- Update / Download URLが`Shota-Zaki/chat-on-steroids`配下のみ
+- Packaged Runtimeに日本語化Assetが含まれる
+
+## Deferred rule
+
+Chatで新しくLocal Verificationが必要になった場合は、このDocumentへ`V-xxx`を追加して後続作業へ進む。Chat内ではLocal Verification待ちを理由に作業を停止しない。
