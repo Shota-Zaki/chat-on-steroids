@@ -23,6 +23,7 @@
 - 検証は対象CommitをLocal Checkoutし、`npm run verify`、必要な個別Test、Package / Smoke Test、Windows実機確認を実行して行う。
 - Windows固有機能はmainPC上の実機結果を正本とする。
 - macOS / Linux固有項目を未実行のまま完了扱いしない。実行しない場合は未検証として明記する。
+- GitHub上のStatus / Check / Workflow Runの有無をPass判定に使わない。
 - 実際にCommandを実行して結果を確認していないTest / Verificationを「Pass」と報告しない。
 
 ## Hardened Fresh Install基準
