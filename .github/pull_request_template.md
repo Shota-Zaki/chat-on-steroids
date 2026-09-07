@@ -1,12 +1,13 @@
-## What changed
+## 変更内容
 
-Describe the root cause and the smallest behavior change that fixes it.
+Root Causeと、それを修正するための必要最小限のBehavior Changeを説明してください。
 
-## Validation
+## Verification
 
-- [ ] Added or updated a deterministic regression test where behavior changed.
-- [ ] `npm run verify` passes.
-- [ ] Packaging/runtime smoke was run when the change can differ after bundling.
-- [ ] No unrelated formatting, generated output, local debugging notes, or private data is included.
-- [ ] Screenshots, logs and examples use placeholders instead of real usernames, paths, chat text, IDs or credentials.
-- [ ] Security-sensitive details are being handled privately instead of disclosed here.
+- [ ] Behaviorを変更した箇所にDeterministic Regression Testを追加または更新した。
+- [ ] `npm run verify` がPassした。
+- [ ] Bundling後に挙動が変わる可能性がある場合、Packaging / Runtime Smokeを実行した。
+- [ ] 無関係なFormatting、Generated Output、Local Debug Note、Private Dataを含めていない。
+- [ ] Screenshot、Log、Exampleでは実際のUser名、Path、Chat本文、ID、CredentialではなくPlaceholderを使用した。
+- [ ] Security-sensitiveな詳細はここでPublicに開示せず、Privateに扱っている。
+- [ ] User-facing UIを追加・変更した場合、日本語表示とRegression Testを同時に更新した。
