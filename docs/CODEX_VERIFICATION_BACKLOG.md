@@ -232,6 +232,32 @@ npm run verify
 - Dynamic StatusのApp-owned周辺文言だけが日本語化される
 - Chrome ExtensionでError本文・Model名・Run IDを保持したまま周辺Labelだけが日本語化される
 
+## V-012 — Native file dialog localization
+
+**対象:** `src/main/ipc.ts`、`test/japanese-ui.test.ts`
+
+**状態:** Implementation保留 / Codex検証待ち
+
+**背景:** `test/japanese-ui.test.ts`にはNative File Dialogの日本語表示を要求するRegression Contractが追加済みだが、Repository整理ではRuntime / IPCの挙動へ影響し得る変更を避けるため、`src/main/ipc.ts`の実装修正は行っていない。
+
+**実装時の対象:** 
+
+- Approved Folder picker title
+- Project Folder picker title
+- Tunnel executable picker title / Windows filter label
+- Image picker title / filter label
+
+**保持する契約:** Diagnostic Error本文、File Path、IPC identifier、Tool / Protocol ContractはLocalization対象外として原文保持する。
+
+**Command候補:**
+
+```sh
+npx vitest run test/japanese-ui.test.ts
+npm run verify
+```
+
+**実画面確認:** Windows Package上で各Native DialogのTitle / Filterが日本語になり、選択結果のPathやError本文が変形していないこと。
+
 ## Deferred rule
 
 Chatで新しくLocal Verificationが必要になった場合は、このDocumentへ`V-xxx`を追加して後続作業へ進む。Chat内ではLocal Verification待ちを理由に作業を停止しない。
