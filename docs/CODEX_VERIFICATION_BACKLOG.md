@@ -134,6 +134,43 @@ Releaseを作る段階で実施する。
 - Update / Download URLが`Shota-Zaki/chat-on-steroids`配下のみ
 - Packaged Runtimeに日本語化Assetが含まれる
 
+## V-009 — Expanded dynamic/composite Japanese UI
+
+**対象:**
+
+- `src/renderer/context-meter.ts`
+- `src/renderer/ja-runtime.ts`
+- `src/renderer/ja-timeline.ts`
+- `src/renderer/ja-composite.ts`
+- `src/renderer/dom.ts`
+
+**目的:** Chatで追加した動的・複合UI日本語化が、保護対象のUser / Model / Tool payloadを変更せず表示だけを日本語化することを確認する。
+
+**個別確認:**
+
+- Context Meterの本文 / aria-labelが日本語
+- Permission group一括ON/OFF titleが日本語
+- Handshake / Problem count / Check中表示が日本語
+- macOS Menu Bar / Windows Tray説明が日本語
+- API Key保存状態 / Placeholderが日本語
+- Plan作成 / 保存 / キャンセル系UIが日本語
+- Browser Bridge状態が日本語
+- Session Footerの保持件数 / 過去履歴 / 稼働中表示が日本語
+- Task PlanのStage番号 / Edit / Delete / Validationだけ日本語で、Stage本文は原文保持
+- Pending InputのStatus / Retry / Cancelだけ日本語で、Message本文は原文保持
+- SwarmのSystem Hint / Pending / Delivered / Clear操作だけ日本語で、Task / Result本文は原文保持
+- Handoff先頭の統計行だけ日本語で、Handoff本文 / Noteは原文保持
+- Timeline grouped activity titleが日本語で、Tool引数 / Result / Model本文は原文保持
+
+**Command候補:**
+
+```sh
+npx vitest run test/japanese-ui.test.ts test/context-meter.test.ts
+npx vitest run test/renderer-state.test.ts test/renderer-timeline.test.ts test/renderer-layout.test.ts
+```
+
+必要なら`test/japanese-ui.test.ts`へ上記Composite BoundaryのRegressionを追加してから`npm run verify`を再実行する。
+
 ## Deferred rule
 
 Chatで新しくLocal Verificationが必要になった場合は、このDocumentへ`V-xxx`を追加して後続作業へ進む。Chat内ではLocal Verification待ちを理由に作業を停止しない。
