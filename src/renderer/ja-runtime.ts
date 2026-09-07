@@ -121,15 +121,8 @@ const PATTERNS: Array<[RegExp, (...parts: string[]) => string]> = [
   [/^The browser extension is (.+) and this app is (.+)\. Load the extension folder again in Chrome\.$/, (_all, extension, app) => `Browser Extensionは${extension}、アプリは${app}です。Chromeで拡張機能Folderをもう一度読み込んでください。`]
 ];
 
-const PROTECTED = [
-  'script', 'style', 'code', 'pre', 'textarea',
-  '#timeline', '#handoffBox', '#inputQueue', '#taskPlanPreview', '#finishQueue',
-  '#connectorCards', '#fullFeed', '#homeFeed', '#swarmList', '#goalModelList',
-  '.sess-top > b', '.project-name', '.session-tooltip', '.root > b', '.root > span', '.root-rename'
-].join(',');
-const ATTRS = ['title', 'aria-label', 'placeholder'] as const;
-
-function translate(value: string): string {
+/** Translate renderer runtime chrome only. DOM ownership remains in ja-ui.ts. */
+export function translateJapaneseRuntimeText(value: string): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   const exact = EXACT.get(normalized);
   if (exact) return exact;
@@ -138,64 +131,4 @@ function translate(value: string): string {
     if (match) return replacer(...match);
   }
   return value;
-}
-
-function protectedNode(node: Node): boolean {
-  const element = node instanceof Element ? node : node.parentElement;
-  return Boolean(element?.closest(PROTECTED));
-}
-
-function localizeText(node: Text): void {
-  if (protectedNode(node)) return;
-  const before = node.data;
-  const after = translate(before);
-  if (before === after) return;
-  const leading = before.match(/^\s*/)?.[0] ?? '';
-  const trailing = before.match(/\s*$/)?.[0] ?? '';
-  node.data = `${leading}${after}${trailing}`;
-}
-
-function localizeElement(element: Element): void {
-  if (protectedNode(element)) return;
-  for (const attr of ATTRS) {
-    const before = element.getAttribute(attr);
-    if (!before) continue;
-    const after = translate(before);
-    if (after !== before) element.setAttribute(attr, after);
-  }
-  for (const child of element.childNodes) {
-    if (child.nodeType === Node.TEXT_NODE) localizeText(child as Text);
-    else if (child.nodeType === Node.ELEMENT_NODE) localizeElement(child as Element);
-  }
-}
-
-let installed = false;
-
-export function installJapaneseRuntimeUi(): void {
-  if (installed || typeof document === 'undefined' || typeof MutationObserver === 'undefined') return;
-  installed = true;
-  localizeElement(document.documentElement);
-  const observer = new MutationObserver((records) => {
-    for (const record of records) {
-      if (record.type === 'characterData' && record.target.nodeType === Node.TEXT_NODE) {
-        localizeText(record.target as Text);
-        continue;
-      }
-      if (record.type === 'attributes' && record.target instanceof Element) {
-        localizeElement(record.target);
-        continue;
-      }
-      for (const node of record.addedNodes) {
-        if (node.nodeType === Node.TEXT_NODE) localizeText(node as Text);
-        else if (node.nodeType === Node.ELEMENT_NODE) localizeElement(node as Element);
-      }
-    }
-  });
-  observer.observe(document.documentElement, {
-    subtree: true,
-    childList: true,
-    characterData: true,
-    attributes: true,
-    attributeFilter: [...ATTRS]
-  });
 }
