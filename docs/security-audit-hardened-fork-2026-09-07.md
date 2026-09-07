@@ -52,6 +52,18 @@ Desktop App、OS Native Tray / Notification、Chrome Extension、README / SECURI
 
 ForkにPublished Releaseが無い場合の`releases/latest` 404だけを正常状態として扱い、`latest = null / stage = idle / error = null`へ戻します。503、Checksum取得404、Asset失敗、Hash不一致等は従来通りFailureです。
 
+## 修正済み — H-06: Extension LocalizationがUser / Model Dataへ到達し得る
+
+ChatGPT上のExtension-owned UIは`.clf-*` ContainerをPresentation Layerとして日本語化しますが、保存済みGoal本文、Goalで生成された次Message本文、Goal保存時の診断Errorも同じContainer内へ描画されます。
+
+これらを一般Localization Observerへ通すと、本文が辞書Patternと偶然一致した場合に表示内容だけが書き換わる余地がありました。次をLocalization保護Selectorへ追加し、表示時も原文保持する境界へ変更しました。
+
+- `.clf-menu-goal-text` — Userが保存したGoal本文
+- `.clf-stage-body` — Modelが生成した次Message本文
+- `.clf-menu-goal-note[data-clf-warn="1"]` — App / Connector由来の診断Error
+
+既存のTool Payload / Result、Bootstrap本文、Stage Detail等の保護境界は維持します。Localizationは操作Label、Status、Step名、説明文等のApp-owned Presentationだけを対象にします。
+
 ## 確認済みの既存Security Control
 
 - Approved RootのPath Canonicalization / Link Escape Check
@@ -129,6 +141,7 @@ ProjectはElectron `43.4.1`をPinしています。
 - Static Diff Review
 - Security Contract Regression追加
 - Japanese UI Boundary Regression追加
+- Extension Goal / Generated Message / Diagnostic Localization Boundary Regression追加
 - No-release Update Regression追加
 - MCP / File System / Command / Desktop / Renderer / Secret / Update / Packaging BoundaryのStatic Review
 
