@@ -158,6 +158,21 @@ describe('Japanese UI localization', () => {
     expect(dom).not.toContain('installJapaneseRuntimeUi');
   });
 
+  it('localizes native file dialog chrome without changing diagnostic error contracts', () => {
+    const ipc = readFileSync(new URL('../src/main/ipc.ts', import.meta.url), 'utf8');
+    for (const value of [
+      'ChatGPTに許可するフォルダーを選択',
+      'ChatGPTのプロジェクトフォルダーを選択',
+      'Tunnel実行ファイルを選択',
+      '画像を添付',
+      "name: 'プログラム'",
+      "name: '画像'"
+    ]) {
+      expect(ipc).toContain(value);
+    }
+    expect(ipc).toContain("throw new Error('Attach up to four images at a time')");
+  });
+
   it('requires the Japanese companion file in packaged runtime and release zip gates', () => {
     const smoke = readFileSync(new URL('../scripts/smoke-packaged-runtime.mjs', import.meta.url), 'utf8');
     const release = readFileSync(new URL('../.github/workflows/release.yml', import.meta.url), 'utf8');
