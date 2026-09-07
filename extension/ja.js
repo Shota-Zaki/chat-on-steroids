@@ -190,6 +190,8 @@
     [/^(Change or clear|Write) what this chat has to reach\. It runs as (Goal|Loop)\.$/, (_all, action, mode) => `${action === 'Change or clear' ? 'このチャットで達成する内容を変更またはクリアします' : 'このチャットで達成する内容を入力します'}。${mode}として実行します。`],
     [/^fiber v(.+) · run (.+)$/, (_all, version, runId) => `fiber v${version} · 実行 ${runId}`],
     [/^Run by (.+), not by the chat you are reading\.$/, (_all, agent) => `${agent}が実行しました。現在読んでいるチャットによる実行ではありません。`],
+    [/^([\s\S]+?) — ([^ \n]+)(?: in (\d+) ms)?\nOriginally: ([\s\S]+)$/, (_all, tool, outcome, duration, original) => `${tool} — ${localized(outcome)}${duration ? ` ${duration}ミリ秒` : ''}\n元の表示: ${original}`],
+    [/^([\s\S]+)\nNamed from this chat’s own record\. This app did not run the call, so it has no result or duration here\.\nOriginally: ([\s\S]+)$/, (_all, source, original) => `${source}\nこのチャット自身の記録から名前を付けています。この呼び出しをアプリが実行したわけではないため、ここには結果や所要時間はありません。\n元の表示: ${original}`],
     [/^(\d+) earlier calls? folded into this row by ChatGPT\. Show them\.$/, (_all, count) => `ChatGPTにより以前の${count}件の呼び出しがこの行へ折りたたまれています。表示します。`],
     [/^The app rejected the last delivery \((.+)\)\.$/, (_all, error) => `アプリが直前の送信を拒否しました（${error}）。`],
     [/^The extension is not accepting this tab’s observations \((.+)\)\. Reload the ChatGPT tab\.$/, (_all, error) => `拡張機能がこのタブの観測を受け付けていません（${error}）。ChatGPTタブを再読み込みしてください。`],
