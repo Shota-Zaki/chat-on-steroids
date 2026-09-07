@@ -75,7 +75,7 @@ describe('Japanese UI localization', () => {
     expect(source).not.toContain("'#rootList'");
   });
 
-  it('keeps tool payloads, bootstrap text, and goal user data outside the companion localization boundary', () => {
+  it('keeps tool payloads, bootstrap text, and goal/model data outside the companion localization boundary', () => {
     const source = readFileSync(new URL('../extension/ja.js', import.meta.url), 'utf8');
     for (const protectedSelector of [
       '.clf-stream-text',
@@ -84,6 +84,7 @@ describe('Japanese UI localization', () => {
       '.clf-tool-detail',
       '.clf-boot-preview',
       '.clf-stage-detail',
+      '.clf-stage-body',
       '.clf-menu-goal-text',
       '.clf-menu-goal-note[data-clf-warn="1"]'
     ]) {
