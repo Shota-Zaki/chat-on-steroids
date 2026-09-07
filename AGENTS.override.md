@@ -20,11 +20,23 @@
 
 - GitHub Actionsを有効化・手動実行・再実行しない。
 - `.github/workflows/` はupstream互換や参照目的で残してよいが、Forkの完成判定やRelease Gateの根拠にはしない。
-- 検証は対象CommitをLocal Checkoutし、`npm run verify`、必要な個別Test、Package / Smoke Test、Windows実機確認を実行して行う。
-- Windows固有機能はmainPC上の実機結果を正本とする。
-- macOS / Linux固有項目を未実行のまま完了扱いしない。実行しない場合は未検証として明記する。
 - GitHub上のStatus / Check / Workflow Runの有無をPass判定に使わない。
 - 実際にCommandを実行して結果を確認していないTest / Verificationを「Pass」と報告しない。
+
+### Chat進行時
+
+- Chatでの調査・静的監査・実装修正は、Local Verification待ちで停止しない。
+- `npm run verify`、個別Test実行、Package / Smoke Test、Windows実機確認など、このChat環境から実行できない項目は `docs/CODEX_VERIFICATION_BACKLOG.md` に対象Commit・目的・実行Command・確認事項を記録して次の作業へ進む。
+- Local Verification未実施であることは明示するが、それだけを理由に同じChat内の後続Static Review / Implementationを止めない。
+- Chatでは構文・型・契約・Security Boundaryを可能な範囲で静的確認し、実行しないTestをPass扱いしない。
+
+### Codex進行時
+
+- 次回Codex作業では `docs/CODEX_VERIFICATION_BACKLOG.md` の未完了項目をまとめて実行する。
+- Exact Reviewed CommitをLocal Checkoutし、`npm run verify`、必要な個別Test、Package / Smoke Test、Windows実機確認を実行する。
+- Windows固有機能はmainPC上の実機結果を正本とする。
+- macOS / Linux固有項目を未実行のまま完了扱いしない。実行しない場合は未検証として明記する。
+- 検証結果はBacklogへ追記し、失敗があればRoot Cause修正後に対象項目を再実行する。
 
 ## Hardened Fresh Install基準
 
@@ -63,5 +75,5 @@ Security-sensitiveな変更では次を守る。
 1. Unsafe Behaviorを再現するか、決定的なRegression Testで固定する。
 2. 最も早いRoot Cause Boundaryを、必要最小限で一貫した変更として修正する。
 3. 可能なら重複Testを増やさず既存Testを更新する。
-4. Local Checkoutで最寄りのRegression、隣接Boundary Test、`npm run verify` を実行してから完了扱いする。
+4. Chat進行時はLocal Verification項目をBacklogへ記録して後続作業へ進む。Codex進行時はBacklogをまとめて実行する。
 5. README / SECURITY等の利用者向け文書を実際のPermission Modelと一致させる。
