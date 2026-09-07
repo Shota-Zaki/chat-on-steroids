@@ -12,7 +12,7 @@ Working Branch: `work`
 
 このDocumentは、個人用Hardened Forkに対して実施したStatic Security ReviewとHardening変更を記録します。
 
-**Runtime Verificationは一部未完了です。** このForkではGitHub Actionsを使用しません。`npm run verify`、Windows x64 package生成、fresh install、startup、renderer、Bridge auth、packaged node-pty / ConPTY smoke、restart、uninstall、無害なChatGPT connectivity smokeは確認しましたが、Tray、Packaged UIの日本語確認、Chrome pairing、Live MCP / attributionは未実行です。本DocumentをRuntime Certificationとして扱わないでください。
+**Runtime Verificationは一部未完了です。** このForkではGitHub Actionsを使用しません。`npm run verify`、Windows x64 package生成、fresh install、startup、renderer、Bridge auth、packaged node-pty / ConPTY smoke、restart、uninstall、無害なChatGPT connectivity smoke、Bridgeのtoken / origin拒否は確認しましたが、Tray、Packaged UIの日本語確認、正式Chrome pairing / reconnect、Live MCP / attributionは未実行です。本DocumentをRuntime Certificationとして扱わないでください。
 
 V-013の未統合History Privacy Findingは修復・検証済みです。残存するPackage / Smoke / Live検証が完了するまでRelease / Mergeは禁止です。
 
@@ -213,6 +213,7 @@ Severity: **High / Privacy / Release Blocker**
 - Packaged node-pty / ConPTY smoke — **PASS**（2 sessions、各2回stdin、exit 0、child cleanup差分0）
 - Packaged app restart — **PASS**（restart後process / 8765 listener）
 - Live ChatGPT connectivity smoke — **PASS**（無害な確認文への`OK`応答。tool callは未要求）
+- Browser Bridge invalid-token / unsupported-origin checks — **PASS**（401 / 401 / 403）
 - Windows verification uninstall — **PASS**（install directory、process、8765–8769 listenerを除去。user-dataは保持）
 
 ### 未完了
@@ -222,6 +223,7 @@ Severity: **High / Privacy / Release Blocker**
 - Linux Packaged Smoke — **未実行**
 - Live MCP / Secure Tunnel Test — **未実行**
 - Live Chrome Extension Pairing / Multi-agent Test — **未実行**
+- Chrome reconnect / formal pairing — **未実行**（Extension browser / model-catalog tabの存在のみ確認）
 - Packaged App MCP dispatcher経由の`exec_command` / `tty=true` / `write_stdin` — **未実行**（command permission OFFを維持）
 - `node-pty` Windows Regression再現 — **未再現**（配布payload smokeはPASS）
 - 日本語UIのPackaged実画面確認 — **未実行**

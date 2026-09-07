@@ -28,7 +28,9 @@ GitHub Actionsは使用しません。
 - Packaged node-pty / ConPTY: PASS — payload内の`node-pty 1.2.0-beta.15`をロードし、2セッションで各2回stdin、exit 0、追加`cmd.exe` / `OpenConsole.exe`残留0を確認。
 - Packaged app restart: PASS — 再起動後のprocessと8765 listenerを確認。
 - Live ChatGPT connectivity: PASS — 無害な確認文へ`OK`応答を確認。ツール実行は要求していない。
-- Tray / Packaged日本語UI、Chrome pairing、Live MCP / attribution: 未検証
+- Existing Chrome Extension / ChatGPT tab observation: 部分確認 — Extension browserがロード済みで、packaged appがmodel-catalog tabを開くことを確認。
+- Browser Bridge security checks: PASS — no-token=401、bad-token=401、unsupported-origin=403。
+- Tray / Packaged日本語UI、正式Chrome pairing / reconnect、Live MCP / live attribution: 未検証
 
 ## V-001 — Full local verification
 
@@ -115,7 +117,7 @@ npm run dist:x64
 - Popupが日本語
 - ChatGPT上のExtension-owned UIが日本語
 
-**実測:** fresh install、startup、renderer、Bridge token境界、restart、uninstallはPASS。Tray、Packaged画面の日本語、Chrome pairing、Live MCPは未実行。
+**実測:** fresh install、startup、renderer、Bridge token境界、restart、uninstallはPASS。Tray、Packaged画面の日本語、正式Chrome pairing / reconnect、Live MCPは未実行。既存artifactは`76076f7..92497b7`が文書差分のみであることを確認し再利用した。
 
 ## V-006 — Windows node-pty / interactive terminal
 
@@ -140,7 +142,7 @@ Failure時はbeta Versionを機械的にDowngradeせず、再現条件・stack /
 
 **目的:** 実際のChatGPT + Chrome Extension + Local Appで、Static Reviewだけでは確認できないBoundaryを検証する。
 
-**実測:** 既存Chromeで無害なChatGPT connectivity smoke（`OK`応答）はPASS。app logにExtension pairing / MCP tool call / attributionの証拠がなく、pairing・Live MCP・attributionは未検証。
+**実測:** 既存ChromeのExtension browserと、app起動によるmodel-catalog tabは確認。Bridgeのno-token / bad-token / unsupported-origin拒否はPASS。正式pairing・reconnect・Live MCP・attributionは未検証。
 
 **確認:**
 
