@@ -349,8 +349,9 @@ export function translateUiText(value: string): string {
   if (!normalized) return value;
   const mapped = exact.get(normalized);
   if (mapped) return mapped;
+  const trimmed = value.trim();
   for (const [pattern, replacer] of dynamic) {
-    const match = pattern.exec(normalized);
+    const match = pattern.exec(trimmed);
     if (match) return replacer(...match);
   }
   return value;
