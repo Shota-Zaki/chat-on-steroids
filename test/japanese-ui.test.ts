@@ -89,6 +89,35 @@ describe('Japanese UI localization', () => {
     }
   });
 
+  it('covers transient extension-owned controls while preserving dynamic model and run identifiers', () => {
+    const source = readFileSync(new URL('../extension/ja.js', import.meta.url), 'utf8');
+    for (const [english, japanese] of [
+      ['copied', 'コピーしました'],
+      ['copy failed', 'コピーに失敗しました'],
+      ['Starting…', '開始中…'],
+      ['Handoff saved, opening the fresh chat', '引き継ぎを保存しました。新しいチャットを開いています'],
+      ['OpenRouter key required', 'OpenRouter APIキーが必要です'],
+      ['add specific goal', '具体的なGoalを追加'],
+      ['add specific loop', '具体的なLoopを追加']
+    ]) {
+      expect(source).toContain(english);
+      expect(source).toContain(japanese);
+    }
+    expect(source).toContain('Replies as you until this chat’s goal is reached, then stops. Written with');
+    expect(source).toContain('このチャットのGoalを達成するまであなたの代わりに返信し、達成後に停止します。');
+    expect(source).toContain('/^fiber v(.+) · run (.+)$/');
+    expect(source).toContain('`fiber v${version} · 実行 ${runId}`');
+  });
+
+  it('keeps renderer DOM localization under one protected observer owner', () => {
+    const dictionary = readFileSync(new URL('../src/renderer/ja.ts', import.meta.url), 'utf8');
+    const presentation = readFileSync(new URL('../src/renderer/ja-ui.ts', import.meta.url), 'utf8');
+    expect(dictionary).not.toContain('new MutationObserver');
+    expect(dictionary).not.toContain('export function installJapaneseUi');
+    expect(presentation).toContain('new MutationObserver');
+    expect(presentation).toContain('export function installJapaneseUi');
+  });
+
   it('requires the Japanese companion file in packaged runtime and release zip gates', () => {
     const smoke = readFileSync(new URL('../scripts/smoke-packaged-runtime.mjs', import.meta.url), 'utf8');
     const release = readFileSync(new URL('../.github/workflows/release.yml', import.meta.url), 'utf8');
