@@ -51,10 +51,14 @@ Fresh InstallはFail Safeを原則とする。
 
 ## 日本語UI方針
 
-利用者向け表示は原則として日本語を正本とする。
+利用者向け表示は原則として日本語を正本とする。ただし、**日本語化の網羅性よりSystemの動作安定性を優先する。**
 
-- Desktop Renderer、Setup、Settings、Usage、Toast、OS Native Notification / Tray、Chrome Extension Popup、ExtensionがChatGPTへ追加する独自UIは日本語表示にする。
-- 新しい利用者向け英語文言を追加するときは、同じ変更で日本語表示と回帰Testも追加する。
+- Desktop Renderer、Setup、Settings、Usage、Toast、OS Native Notification / Tray、Chrome Extension Popup、ExtensionがChatGPTへ追加する独自UIは、安全にPresentationだけを変更できる範囲で日本語表示にする。
+- 日本語化だけを目的として、Runtime Control Flow、IPC、Bridge、MCP、Permission、Update、Model検出、Session Attribution、Tool Contract、Protocol、Persistence、Browser Automation等の動作責務を持つ実装を変更しない。
+- `MutationObserver`、DOM Selector、Dynamic Pattern、Origin判定、Extension transport等はLocalizationと動作境界が近いため、表示上の英語が残っていても翻訳目的だけでは変更しない。
+- `src/main/*`等のMain Processコードは、表示文字列だけに見える変更でもRuntimeと同じFileに存在する場合、影響が明確にPresentation-onlyと証明できない限り保留してよい。
+- 残存英語がSecurity、Correctness、操作不能等の問題を起こさない場合、日本語化未完了だけを理由にRelease / CompletionをBlockしない。
+- 新しい利用者向け英語文言を追加するときも、同じ変更で安全に日本語化できる場合のみ日本語表示を追加する。動作Riskが増える場合は英語のまま許容する。
 - User / Assistantの会話本文、Handoff本文、Task本文、Folder名、Model名、Tool引数・結果、Diagnostic Logは表示の正確性を優先して翻訳しない。
 - `exec_command`、`write_stdin`、`session_finish` などのTool名、API / IPC identifier、Error Code、Protocol field、Model ID、Provider名、`NO_REPLY` などの機械契約は変更しない。
 - ChatGPTへコピーするConnector名・Description等、完全一致が意味を持つContract Textは翻訳レイヤーの対象外とする。
