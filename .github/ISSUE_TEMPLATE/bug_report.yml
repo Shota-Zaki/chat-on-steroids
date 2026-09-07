@@ -1,30 +1,29 @@
-name: Bug report
-description: Something behaved incorrectly.
+name: Bug報告
+description: 想定と異なる動作や不具合を報告します。
 labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time. This is a solo-maintained beta, so please be
-        patient with response times.
+        報告ありがとうございます。このProjectは個人管理のBetaです。
 
-        **If this is a security problem, stop here.** Use the repository's
-        Security → Report a vulnerability flow instead of a public issue.
+        **Security上の問題の場合は、ここでPublic Issueを作成しないでください。**
+        Repositoryの Security → Report a vulnerability からPrivate Reportしてください。
 
   - type: input
     id: version
     attributes:
-      label: App version
-      description: Settings → About.
-      placeholder: "1.9.4"
+      label: アプリVersion
+      description: 設定画面などで確認できるVersionを入力してください。
+      placeholder: "2.0.6"
     validations:
       required: true
 
   - type: input
     id: operating_system
     attributes:
-      label: Operating system and version
-      placeholder: "Windows 11 24H2, macOS 15.6, Ubuntu 24.04, …"
+      label: OSとVersion
+      placeholder: "Windows 11 24H2、macOS 15.6、Ubuntu 24.04 など"
     validations:
       required: true
 
@@ -35,48 +34,48 @@ body:
       options:
         - "x64 (Intel/AMD)"
         - "ARM64"
-        - "Not sure"
+        - "不明"
     validations:
       required: true
 
   - type: dropdown
     id: extension
     attributes:
-      label: Was the Chrome extension connected?
+      label: Chrome拡張機能は接続されていましたか？
       options:
-        - "Yes, and its version matches the app"
-        - "Yes, but I am not sure the versions match"
-        - "No"
-        - "I do not have the extension installed"
+        - "はい。Versionもアプリと一致しています"
+        - "はい。ただしVersion一致は未確認です"
+        - "いいえ"
+        - "Chrome拡張機能をInstallしていません"
     validations:
       required: true
 
   - type: dropdown
     id: chatgpt_access
     attributes:
-      label: ChatGPT workspace / custom MCP access
-      description: Select the closest match. OpenAI plan and workspace policy can affect custom app behavior.
+      label: ChatGPT Workspace / Custom MCPの利用状況
+      description: 最も近いものを選択してください。ChatGPTのPlanやWorkspace PolicyによりCustom Appの挙動が変わる場合があります。
       options:
         - "Business"
-        - "Enterprise or Edu"
-        - "Pro (custom MCP read/fetch only)"
-        - "Other or not sure"
-        - "Not relevant to this bug"
+        - "Enterprise / Edu"
+        - "Pro"
+        - "その他 / 不明"
+        - "このBugには関係ありません"
     validations:
       required: true
 
   - type: textarea
     id: what
     attributes:
-      label: What happened
-      description: What you did, what happened, and what you expected instead.
+      label: 発生したこと
+      description: 実行した操作、実際に起きたこと、期待していた動作を記載してください。
     validations:
       required: true
 
   - type: textarea
     id: repro
     attributes:
-      label: Steps to reproduce
+      label: 再現手順
       placeholder: |
         1.
         2.
@@ -85,9 +84,8 @@ body:
   - type: textarea
     id: extra
     attributes:
-      label: Anything else
+      label: 補足
       description: >
-        Relevant log output, or which permissions were enabled at the time.
-        Remove secrets, personal file contents, usernames/paths, conversation text,
-        and account/workspace identifiers before posting.
+        関係するLogや、その時点で有効だったPermission等を記載できます。
+        Secret、個人ファイルの内容、User名 / Path、会話本文、Account / Workspace識別子は投稿前に削除してください。
       render: text
