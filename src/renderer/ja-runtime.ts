@@ -126,8 +126,9 @@ export function translateJapaneseRuntimeText(value: string): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   const exact = EXACT.get(normalized);
   if (exact) return exact;
+  const trimmed = value.trim();
   for (const [pattern, replacer] of PATTERNS) {
-    const match = pattern.exec(normalized);
+    const match = pattern.exec(trimmed);
     if (match) return replacer(...match);
   }
   return value;
