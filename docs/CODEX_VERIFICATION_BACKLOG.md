@@ -23,7 +23,7 @@ npm ci
 npm run verify
 ```
 
-**確認:** exit code 0。Failure時は最初のRoot Causeから修正して再実行する。
+**確認:** exit code 0。Failure時は最初のRoot Causeから修正して再実行する。V-013のCommit Author Privacyが未解決なら、Privacy Gate Failureを無視・Bypassせず先にV-013を解消する。
 
 ## V-002 — Japanese UI regression
 
@@ -241,6 +241,32 @@ npm run verify
 以前`test/japanese-ui.test.ts`へ追加されたNative File Dialog日本語化の必須Regression Contractも撤回済みです。Diagnostic Error本文、File Path、IPC identifier、Tool / Protocol Contractは引き続き原文保持します。
 
 この項目はVerification待ちではなく、安定性優先の方針決定を記録するために残しています。
+
+## V-013 — Fork commit author privacy / noreply history
+
+**対象:** `scripts/verify-public-history.mjs`、`main..work`の到達可能な未統合Commit History
+
+**状態:** 未検証 / Codex検証待ち / **Release Blocker**
+
+**背景:** Fork側の到達可能な`work` Commit metadataに、GitHub noreplyではないMaintainer emailが含まれることをStatic確認した。値そのものをDocumentへ記録しない。従来のPrivacy Gateはupstream Maintainerだけを検査していたため、このForkのAuthor / Committer identityを検出できなかった。
+
+**目的:** Fork用Privacy Gateが`Shota-Zaki`のAuthor / Committerを検査し、公開前のFork Historyに個人メールアドレスを残さないことを確認する。
+
+**Command候補:**
+
+```sh
+git fetch --all --prune
+npm run verify:privacy
+git log main..work --format='%H %an <%ae> | %cn <%ce>'
+```
+
+**確認:**
+
+- `scripts/verify-public-history.mjs`が`Shota-Zaki/chat-on-steroids`の`main`をPublished Boundaryとして扱う
+- `main..work`のMaintainer Author / CommitterがGitHub noreply形式のみ
+- Privacy Gate Failureを`--no-verify`等でBypassしない
+- Remediationが必要な場合、`main`は変更せず、未統合の`work` Historyだけを対象に安全なHistory Rewrite Planを作成する
+- Rewrite後はPR #1をDraftのまま維持し、`npm run verify:privacy`と`npm run verify`を再実行する
 
 ## Deferred rule
 
