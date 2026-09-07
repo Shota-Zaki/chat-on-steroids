@@ -188,6 +188,50 @@ npm run verify
 
 **確認:** PopupのCopy結果、Compact / Goal / Loop設定と進行表示、Blocked説明が日本語であること。Model名・Run ID・Agent識別子、Tool / Protocol / User Dataは原文保持すること。`src/renderer/ja.ts`は辞書のみ、DOM Observerは保護境界を持つ`src/renderer/ja-ui.ts`が所有すること。
 
+## V-011 — Renderer observer ownership / dynamic-value preservation
+
+**対象:**
+
+- `src/renderer/ja.ts`
+- `src/renderer/ja-ui.ts`
+- `src/renderer/ja-runtime.ts`
+- `src/renderer/ja-timeline.ts`
+- `src/renderer/ja-composite.ts`
+- `src/renderer/ja-setup.ts`
+- `src/renderer/dom.ts`
+- `extension/ja.js`
+- `test/japanese-ui.test.ts`
+
+**状態:** 未検証 / Codex検証待ち
+
+**目的:** H-07 / H-08で変更したLocalization OwnershipとDynamic Data保持を、Unit Testと実画面の両方で確認する。
+
+**Command候補:**
+
+```sh
+npx vitest run test/japanese-ui.test.ts test/extension-popup.test.ts test/extension.test.ts
+npx vitest run test/renderer-state.test.ts test/renderer-timeline.test.ts test/renderer-layout.test.ts
+npm run verify
+```
+
+**静的 / Unit確認:** 
+
+- Renderer一般DOM Observerは`ja-ui.ts`だけが所有する
+- `ja-runtime.ts`はPure TranslatorでありDOM Observerを持たない
+- Dynamic PatternはWhitespace-normalized文字列ではなく元文字列の外側だけを`trim()`してMatchする
+- `Rename /My  Folder`のFolder名内部の2 Spaceが維持される
+- `Extension folder: C:\\My  Folder`のPath内部の2 Spaceが維持される
+- `Could not check for a newer version: E  42.`のError本文内部の2 Spaceが維持される
+- Extension側もVersion / Run ID / Request ID / Error Capture等の内部文字列を保持する
+
+**Packaged / 実画面確認:** 
+
+- User Goal本文が`Starting` / `Saved`等の辞書語と一致しても`#activeGoalRow`内で変形しない
+- User File名が辞書語と一致しても`#composerImages`のData表示・属性で変形しない
+- Folder名 / Path / Model名 / Agent名 / Run ID / Request IDは原文保持
+- Dynamic StatusのApp-owned周辺文言だけが日本語化される
+- Chrome ExtensionでError本文・Model名・Run IDを保持したまま周辺Labelだけが日本語化される
+
 ## Deferred rule
 
 Chatで新しくLocal Verificationが必要になった場合は、このDocumentへ`V-xxx`を追加して後続作業へ進む。Chat内ではLocal Verification待ちを理由に作業を停止しない。
