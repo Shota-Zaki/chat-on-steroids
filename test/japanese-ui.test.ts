@@ -89,11 +89,13 @@ describe('Japanese UI localization', () => {
     expect(source).not.toContain("'#rootList'");
   });
 
-  it('keeps dynamic pattern captures byte-preserving across renderer localization layers', () => {
+  it('keeps dynamic pattern captures byte-preserving across localization layers', () => {
     for (const file of ['ja.ts', 'ja-runtime.ts', 'ja-ui.ts', 'ja-timeline.ts', 'ja-composite.ts', 'ja-setup.ts']) {
       const source = readFileSync(new URL(`../src/renderer/${file}`, import.meta.url), 'utf8');
       expect(source).not.toContain('pattern.exec(normalized)');
     }
+    const companion = readFileSync(new URL('../extension/ja.js', import.meta.url), 'utf8');
+    expect(companion).not.toContain('pattern.exec(normalized)');
   });
 
   it('keeps tool payloads, bootstrap text, and goal/model data outside the companion localization boundary', () => {
