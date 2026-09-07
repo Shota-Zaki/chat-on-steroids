@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { translateJapaneseUiText } from '../src/renderer/ja-ui.js';
+import { shouldInstallJapaneseUi } from '../src/renderer/ja-origin.js';
 
 describe('Japanese UI localization', () => {
   it('translates human-facing app labels and dynamic status text', () => {
@@ -12,6 +13,16 @@ describe('Japanese UI localization', () => {
     expect(translateJapaneseUiText('Usage could not be loaded. Try Refresh.')).toBe(
       '使用状況を読み込めませんでした。「更新」をお試しください。'
     );
+  });
+
+  it('installs automatic localization only in packaged and local development renderer origins', () => {
+    expect(shouldInstallJapaneseUi({ protocol: 'file:', hostname: '' })).toBe(true);
+    expect(shouldInstallJapaneseUi({ protocol: 'http:', hostname: 'localhost' })).toBe(true);
+    expect(shouldInstallJapaneseUi({ protocol: 'http:', hostname: '127.0.0.1' })).toBe(true);
+    expect(shouldInstallJapaneseUi({ protocol: 'http:', hostname: '::1' })).toBe(true);
+    expect(shouldInstallJapaneseUi({ protocol: 'https:', hostname: 'local.test' })).toBe(false);
+    expect(shouldInstallJapaneseUi({ protocol: 'https:', hostname: 'example.com' })).toBe(false);
+    expect(shouldInstallJapaneseUi(null)).toBe(false);
   });
 
   it('does not translate protocol contracts, tool names, stop markers, or arbitrary user text', () => {
