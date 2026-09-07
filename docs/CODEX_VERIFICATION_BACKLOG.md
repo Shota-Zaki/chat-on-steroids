@@ -171,6 +171,23 @@ npx vitest run test/renderer-state.test.ts test/renderer-timeline.test.ts test/r
 
 必要なら`test/japanese-ui.test.ts`へ上記Composite BoundaryのRegressionを追加してから`npm run verify`を再実行する。
 
+## V-010 — Extension localization ownership regression
+
+**対象:** `extension/ja.js`、`src/renderer/ja.ts`、`src/renderer/ja-ui.ts`、`test/japanese-ui.test.ts`
+
+**状態:** 未検証 / Codex検証待ち
+
+**目的:** 今回追加したExtension-owned UIの日本語化と、Renderer Localization Observerの単一所有を確認する。
+
+**Command候補:**
+
+```sh
+npx vitest run test/japanese-ui.test.ts test/extension-popup.test.ts test/extension.test.ts
+npm run verify
+```
+
+**確認:** PopupのCopy結果、Compact / Goal / Loop設定と進行表示、Blocked説明が日本語であること。Model名・Run ID・Agent識別子、Tool / Protocol / User Dataは原文保持すること。`src/renderer/ja.ts`は辞書のみ、DOM Observerは保護境界を持つ`src/renderer/ja-ui.ts`が所有すること。
+
 ## Deferred rule
 
 Chatで新しくLocal Verificationが必要になった場合は、このDocumentへ`V-xxx`を追加して後続作業へ進む。Chat内ではLocal Verification待ちを理由に作業を停止しない。
