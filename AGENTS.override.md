@@ -71,6 +71,7 @@ Fresh InstallはFail Safeを原則とする。
 - Caller IdentityはFail Closed。ExtensionがCallerを証明できない場合、Active Tab、Timing、Ordering、Model-supplied ID等から推測しない。
 - File ToolはApproved Rootに制約するが、Application-level Path CheckをOS / Kernel Sandboxとして扱わない。
 - Tunnel URL、Bridge Token、API Key等のCredentialをLogやCommitへ含めない。
+- Forkが所有するRelease / Download / Support / Security / Package Metadataは `Shota-Zaki/chat-on-steroids` を指す。upstream URLは、出典・履歴・比較・明示的なupstream参照として必要な場合だけ残す。
 
 ## 変更手順
 
