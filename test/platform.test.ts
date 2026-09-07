@@ -31,13 +31,16 @@ describe('cross-platform product surface', () => {
   it('starts macOS with Core on and Desktop off, and keeps a Desktop the user switched on', () => {
     const config = defaultConfig('darwin', '21.4.0');
     for (const capability of DESKTOP_CAPABILITIES) expect(config.capabilities[capability], capability).toBe(false);
+    for (const capability of ['browse', 'search', 'read', 'metadata'] as const) expect(config.capabilities[capability], capability).toBe(true);
     for (const capability of CAPABILITIES) {
-      if (!DESKTOP_CAPABILITIES.includes(capability)) expect(config.capabilities[capability], capability).toBe(true);
+      if (!DESKTOP_CAPABILITIES.includes(capability) && !['browse', 'search', 'read', 'metadata'].includes(capability as never)) {
+        expect(config.capabilities[capability], capability).toBe(false);
+      }
     }
     expect(surfaceIsUseful('core', config.capabilities, 'darwin')).toBe(true);
     expect(surfaceIsUseful('desktop', config.capabilities, 'darwin', '21.4.0')).toBe(false);
     // The off default is a stored choice, not a platform mask: switching the group on works.
-    const switchedOn = { ...config, capabilities: allCapabilities() };
+    const switchedOn = { ...config, readOnly: false, capabilities: allCapabilities() };
     expect(effectiveCapabilities(switchedOn, 'darwin', '21.4.0')).toEqual(allCapabilities());
     expect(surfaceIsUseful('desktop', switchedOn.capabilities, 'darwin', '21.4.0')).toBe(true);
   });
@@ -49,11 +52,11 @@ describe('cross-platform product surface', () => {
       search: true,
       read: true,
       metadata: true,
-      create: true,
-      edit: true,
-      move: true,
-      deleteFile: true,
-      command: true,
+      create: false,
+      edit: false,
+      move: false,
+      deleteFile: false,
+      command: false,
       screen: false,
       control: false,
       clipboardRead: false,
@@ -65,7 +68,7 @@ describe('cross-platform product surface', () => {
 
   it('masks stored Windows Desktop grants at runtime without deleting the stored choices', () => {
     const stored = allCapabilities();
-    const config = { ...defaultConfig('linux'), capabilities: stored };
+    const config = { ...defaultConfig('linux'), readOnly: false, capabilities: stored };
     const live = effectiveCapabilities(config, 'linux');
 
     expect(live.screen).toBe(false);

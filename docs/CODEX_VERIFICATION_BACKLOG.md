@@ -6,10 +6,20 @@ GitHub Actionsは使用しません。
 
 ## Status
 
-- Chat側: Static Review / Implementationを継続
-- Local Verification: CodexへDeferred
+- Chat側: Static Review / Implementation / V-013 remediation completed
+- Local Verification: V-013 Privacy Gate and full local verification completed
 - Pass判定: 実際にLocal Command / Package / 実機確認を実行した項目のみ
-- Release: V-013完了とLocal Verification成功までBlocked
+- Release: Package / Smoke / Live verification完了までBlocked
+
+### Latest Codex verification
+
+- Rewrite前のRemote `work`をBundleへ保存し、`main..work`の124 unsafe Maintainer metadata commitsだけをnoreplyへ修復した。
+- `main` / upstream `main`のSHA、全commit tree、commit message、名前・日時を不変として確認した。
+- `npm ci`: PASS
+- `npm run verify:privacy`: PASS
+- `test/public-history-privacy.test.ts`: 16/16 PASS
+- `npm run verify`: PASS — 117 test files passed, 1 skipped; 2,934 tests passed, 23 skipped; shutdown suite 2/2 passed
+- Windows Package / Smoke、Live MCP / Chrome、node-pty実機、Packaged UI: 未検証
 
 ## V-001 — Full local verification
 
@@ -247,7 +257,7 @@ npm run verify
 
 **対象:** `scripts/verify-public-history.mjs`、`test/public-history-privacy.test.ts`、`main..work`の到達可能な未統合Commit History
 
-**状態:** **History Rewrite required / Codex検証待ち / Release Blocker**
+**状態:** **History Rewrite completed / Privacy Gate PASS / Regression PASS / Full Local Verification PASS**
 
 **Static判断:** 現在の`main..work`に、GitHub noreplyではないFork Maintainer Author / Committer metadataを持つ到達可能な未統合Commitが存在することをGitHub上で確認した。個人メール値そのものはDocument / PR本文へ記録しない。したがって「Rewriteが必要か」は未決ではなく、**`work`の未統合History Rewriteが必要**と判断する。
 
@@ -263,6 +273,8 @@ npm run verify
 - Regression TestをFork Maintainer / Fork Remoteへ移行し、非noreply Test Fixtureには実在個人アドレスを使用しない
 
 **目的:** Fork用Privacy Gateと実Historyの両方を整合させ、公開前のFork Historyに個人メールアドレスを残さない。
+
+**実測結果:** Rewrite前の`work`先端をBundleへ保存し、`main..work`の124コミットのunsafe Maintainer Author / Committer emailだけを修正した。Rewrite後の`work`は125コミット先行のまま、最終Tree・全commit tree・commit message・名前・日時は不変で、Fork `main` / upstream `main`は変更していない。Privacy Gateはexit code 0、Privacy Regressionは16/16、Full Local Verificationも成功した。個人メール値は記録しない。
 
 ### Codex手順
 
@@ -359,7 +371,7 @@ git rev-parse refs/remotes/origin/work
 - `main..work`のMaintainer Author / CommitterがGitHub noreplyのみ
 - `npm run verify:privacy` / `npm run verify`の対象CommitがPush後HEADと一致
 
-**完了条件:** History Rewrite、Privacy Gate、Local Verificationの3点が同じ最終`work` HEADに対して確認済みであること。完了前はMerge / Release禁止。
+**完了条件:** History Rewrite、Privacy Gate、Local Verificationの3点はこの作業候補で確認済み。Package / Smoke / Live検証が残るため、Merge / Release禁止は継続する。
 
 ## GitHub Repository Settings — Manual follow-up
 

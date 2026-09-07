@@ -130,15 +130,15 @@ describe('Japanese UI localization', () => {
       ['This chat is blocked in the app. Release it there to drive it again.', 'このチャットはアプリでブロックされています。再開するにはアプリ側でブロックを解除してください。'],
       ['Add an OpenRouter API key in the app first.', '先にアプリでOpenRouter APIキーを追加してください。'],
       ['Pick Goal or Loop above first — Off writes nothing.', '先にGoalまたはLoopを選択してください。Offではメッセージを生成しません。'],
-      ['Named from this chat’s own record.', 'このチャット自身の記録から名前を付けています。'],
+      ['Named from this chat’s own record\\.', 'このチャット自身の記録から名前を付けています。'],
       ['Originally:', '元の表示:']
     ]) {
       expect(source).toContain(english);
       expect(source).toContain(japanese);
     }
-    expect(source).toContain('Replies as you until this chat’s goal is reached, then stops. Written with');
+    expect(source).toContain('Replies as you until this chat’s goal is reached, then stops\\. Written with');
     expect(source).toContain('このチャットのGoalを達成するまであなたの代わりに返信し、達成後に停止します。');
-    expect(source).toContain('Change or clear what this chat has to reach');
+    expect(source).toContain('Change or clear|Write) what this chat has to reach\\. It runs as');
     expect(source).toContain('このチャットで達成する内容を変更またはクリアします');
     expect(source).toContain('/^fiber v(.+) · run (.+)$/');
     expect(source).toContain('`fiber v${version} · 実行 ${runId}`');

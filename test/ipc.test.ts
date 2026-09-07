@@ -263,7 +263,12 @@ describe('explicit settings replace the published tool contract', () => {
     const { effectiveCapabilities } = await import('../src/main/config.js');
     const { publishPluginSurface, pluginRefreshPublications, resetPluginRefreshForTests } = await import('../src/main/plugin-refresh.js');
     const initial = getConfig();
-    await saveConfig({ ...initial, ui: { ...initial.ui, finishTool: true }, capabilities: { ...initial.capabilities, read: true } });
+    await saveConfig({
+      ...initial,
+      readOnly: false,
+      ui: { ...initial.ui, finishTool: true },
+      capabilities: { ...initial.capabilities, read: true, ...(kind === 'command' ? { command: true } : {}) }
+    });
     const endpoint = await startMcpServer(() => ({ roots: [], caps: effectiveCapabilities(getConfig()), readOnly: getConfig().readOnly }));
     const snapshot = () => {
       endpoint.publication!('core', (name, version, instructions, tools) => publishPluginSurface('core', name, version, instructions, tools));

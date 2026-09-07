@@ -12,9 +12,9 @@ Working Branch: `work`
 
 このDocumentは、個人用Hardened Forkに対して実施したStatic Security ReviewとHardening変更を記録します。
 
-**Runtime Verificationは未完了です。** このForkではGitHub Actionsを使用しません。`npm run verify`、Package / Smoke Test、Windows実機確認は対象CommitをLocal Checkoutして実行し、その実行結果をVerificationの正本とします。本DocumentをRuntime Certificationとして扱わないでください。
+**Runtime Verificationは一部未完了です。** このForkではGitHub Actionsを使用しません。`npm run verify`はLocalで成功しましたが、Package / Smoke Test、Live MCP / Chrome、Windows実機確認は未実行です。本DocumentをRuntime Certificationとして扱わないでください。
 
-また、`main..work`の未統合HistoryにはCommit Metadata Privacyの未解決Findingがあります。V-013が完了するまでRelease / Mergeは禁止です。
+V-013の未統合History Privacy Findingは修復・検証済みです。残存するPackage / Smoke / Live検証が完了するまでRelease / Mergeは禁止です。
 
 ## 要約
 
@@ -23,7 +23,7 @@ Fork固有の重大なRuntime / Release Trust問題を2件修正しました。
 1. Fresh InstallでFile変更、Command、Desktop等の強力なPermissionが広く有効だった。
 2. Runtime Update / Recovery Linkがupstream RepositoryをTrustしており、Hardened Fork Buildが将来upstream Artifactへ置換される可能性があった。
 
-加えて、Fork MaintainerのCommit Author / Committer Privacy GateをStatic Reviewし、Fork固有Published BoundaryとRegression Testの移行不備を修正しました。ただし既存の未統合Commit History自体はまだ修復していないため、R-07 / V-013をRelease Blockerとして維持します。
+加えて、Fork MaintainerのCommit Author / Committer Privacy GateをStatic Reviewし、Fork固有Published BoundaryとRegression Testの移行不備を修正しました。未統合Historyのmetadata-only rewrite、Tree不変確認、Privacy Gate、Regression、Full Local Verificationまで完了しています。
 
 upstream実装には、File System Containment、MCP Transport Authentication、Secret Storage、Renderer Isolation、Update Checksum、Permission Revocationなど多くの防御が既に実装されており、これらは維持しています。
 
@@ -154,9 +154,9 @@ Severity: **High / Privacy / Release Blocker**
 
 **修正済み範囲:** `scripts/verify-public-history.mjs`はMaintainerを`Shota-Zaki`、許可形式をGitHub noreplyに限定し、Published BoundaryをURLが完全一致する`Shota-Zaki/chat-on-steroids`のRemote `main`だけに限定しました。Fork RemoteまたはそのFetched `main`が無い場合は何も公開済み扱いせず、`origin/main`へFallbackしません。Regression TestもFork MaintainerとFork Published Boundaryへ移行し、非noreply Fixtureには実在個人アドレスを使用しません。
 
-**未解決範囲:** 既存の`main..work` History自体はまだRewriteしていません。Static確認で到達可能な未統合Commitに非noreply Maintainer metadataが存在するため、History Rewriteは必要です。個人メール値は本Documentへ記録しません。`npm run verify:privacy` / `npm run verify`もLocal未実行です。
+**解決結果:** Rewrite前Bundleを保存し、`main..work`の124コミットだけを対象にmetadataを修復しました。Rewrite後も125コミット先行、Tree・commit message・名前・日時は不変で、Fork `main` / upstream `main`は変更していません。Privacy Gateはexit code 0、Privacy Regressionは16/16、Full Local Verificationは成功しました。個人メール値は本Documentへ記録しません。
 
-**Release Blocker:** **YES**。V-013で`work`のみを安全にRewriteし、Fork Published Boundary基準のPrivacy GateとFull Local Verificationを実行して成功を確認するまで、PR #1はDraftを維持し、Merge / Releaseしません。
+**Release Blocker:** **YES**。V-013は完了しましたが、Package / Smoke / Live検証が未完了のため、PR #1はDraftを維持し、Merge / Releaseしません。
 
 **Codex Verification:** `docs/CODEX_VERIFICATION_BACKLOG.md`のV-013を正本とします。`main` / upstream Historyを変更せず、Tree内容の不変を検証したうえで`work`の未統合Historyだけを修復します。
 
@@ -190,12 +190,14 @@ Severity: **High / Privacy / Release Blocker**
 - No-release Update Regression追加
 - MCP / File System / Command / Desktop / Renderer / Secret / Update / Packaging BoundaryのStatic Review
 - V-013 Privacy GateのFork Published Boundary Static Review / Regression Test移行
+- V-013 `main..work` metadata-only History Rewrite / Tree不変確認
+- V-013 Privacy Gate — **PASS**
+- V-013 Privacy Regression — **16/16 PASS**
+- `npm ci` — **PASS**
+- `npm run verify` — **PASS**
 
 ### 未完了
 
-- V-013 `main..work` Commit History Rewrite — **未実行 / Release Blocker**
-- `npm run verify:privacy` — **Local実行成功を未確認**
-- `npm run verify` — **Local実行成功を未確認**
 - Windows Packaged Smoke — **未実行**
 - macOS Packaged Smoke — **未実行**
 - Linux Packaged Smoke — **未実行**
