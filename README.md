@@ -59,7 +59,7 @@ ChatGPTは優秀でも、通常はText Boxの中だけで動きます。Develope
 
 WindowsとAppImageは起動時および6時間ごとに**このHardened ForkのRelease**を確認し、新VersionがあればDownload、Checksum Verification、Stageを行います。Userが終了するか**アップデートをインストール**を選んだ際に適用します。Stage済みDownloadもInstall直前に再検証します。macOS / DEBはRelease PageからManual Updateします。
 
-**Debian / UbuntuではDEBを推奨します。** AppImageはelectron-builderのStatic Launcherを使用し、HostがUnprivileged User Namespaceを禁止しているとChromiumを`--no-sandbox`付きで起動するFallbackがあります。このFallbackを避けたい場合はDEBを使用してください。
+**Debian / UbuntuではDEBを推奨します。** AppImageはelectron-builderのStatic Launcherを使用し、HostがUnprivileged User Namespace（unprivileged user namespaces）を禁止しているとChromiumを`--no-sandbox`付きで起動するFallbackがあります。このFallbackを避けたい場合はDEBを使用してください。
 
 **BuildはまだPublisher署名されておらず、macOSもNotarizeされていません。** SmartScreen、Gatekeeper、Browser等が警告する可能性があります。実行前にHashを確認してください。
 
@@ -77,7 +77,7 @@ sha256sum Chat-On-Steroids-Linux-x64.AppImage     # Linux
 <a id="requirements"></a>
 ## 必要環境
 
-- **Windows 10/11**、**macOS 13 Ventura以降**、または現行Desktop **Linux**。DownloadしたBuildとCPU Architecture（x64 / ARM64）が一致していること。
+- **Windows 10/11**、**macOS 13 Ventura以降（macOS 13 Ventura or newer）**、または現行Desktop **Linux**。DownloadしたBuildとCPU Architecture（x64 / ARM64）が一致していること。
 - Companion Extension用に**Chrome 116以降**。ExtensionがなくてもMCP Tool自体は使えますが、Session Attribution、Compact & Resume、Worker Chat、Goal Loopは利用できません。
 - **Linux:** GNOME KeyringやKWallet等のSecret Service Keyring。Electronの暗号化されない`basic_text` FallbackはCredential保存に使用しません。
 - **Developer mode**とCustom MCP Appを利用できるChatGPT Workspace。利用可能な機能はChatGPT Plan / Workspace設定により異なります。最新条件はOpenAI公式の [Developer mode and MCP apps](https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt) を確認してください。
