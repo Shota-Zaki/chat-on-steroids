@@ -28,7 +28,7 @@ Chat On Steroidsは、ChatGPTと、このアプリを実行しているLogged-in
 以下は現在のDesign上の特性であり、それだけでは脆弱性報告の対象ではありません。
 
 - **Release BinaryはPublisher署名されておらず、macOS BuildもNotarizeされていません。** Apple SiliconのMach-OにAd-hoc Signatureが付く場合がありますが、Publisher IdentityやGatekeeper Trustを証明するものではありません。Windows SmartScreen、macOS Gatekeeper、Browser等が警告する可能性があります。実行前にReleaseのSHA-256を確認してください。
-- **Linux AppImageにはSandbox利用不可時のFallbackがあります。** HostがUnprivileged User Namespaceを無効化している場合、electron-builderのStatic Launcherが`--no-sandbox`を追加することがあります。このFallbackを避けたいDebian / Ubuntu環境ではDEBを推奨します。
+- **Linux AppImageにはSandbox利用不可時のFallbackがあります。** HostがUnprivileged User Namespace（unprivileged user namespaces）を無効化している場合、electron-builderのStatic Launcherが`--no-sandbox`を追加することがあります。このFallbackを避けたいDebian / Ubuntu環境ではDEBを推奨します。
 - **Fresh InstallはRead-onlyで開始し、browse / search / read / metadataのみONです。** File変更、Command実行、Screen / Control、Clipboard Capabilityは明示的なOpt-inが必要です。Multi-agentはONで開始しますが、Unattributed Callは初期状態でBlockされます。既存Installでは保存済みの明示的な選択を維持します。
 - **Application-level Path CheckはKernel / VM Sandboxではありません。** File Toolを大きく制限しますが、同一User権限のLocal ProcessとのFile System Raceなどを完全隔離するものではありません。Approved RootをHostile Local Processからの隔離境界として扱わないでください。
 - **CommandとDesktop CapabilityはDesign上強力です。** 有効化すると、通常のOS権限境界の範囲でLogged-in Userが操作できる場所へ作用できます。
