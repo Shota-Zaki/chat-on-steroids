@@ -51,7 +51,7 @@ const expectedPlist = {
   LSApplicationCategoryType: 'public.app-category.developer-tools',
   LSMinimumSystemVersion: '13.0',
   NSScreenCaptureUsageDescription:
-    'Chat On Steroids captures a display or window only when the enabled Desktop connector asks to observe it.'
+    '有効化されたDesktopコネクタが画面を確認するときだけ、Chat On Steroidsがディスプレイまたはウィンドウをキャプチャします。'
 };
 for (const [key, expected] of Object.entries(expectedPlist)) {
   const actual = plistValue(key);
