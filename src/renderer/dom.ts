@@ -1,6 +1,7 @@
 import { installJapaneseUi, translateJapaneseUiText } from './ja-ui.js';
 import { installJapaneseTimelineUi } from './ja-timeline.js';
 import { installJapaneseRuntimeUi } from './ja-runtime.js';
+import { installJapaneseCompositeUi } from './ja-composite.js';
 import { shouldInstallJapaneseUi } from './ja-origin.js';
 
 /**
@@ -17,6 +18,7 @@ if (japanesePresentation) {
   installJapaneseUi();
   installJapaneseRuntimeUi();
   installJapaneseTimelineUi();
+  installJapaneseCompositeUi();
 }
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
