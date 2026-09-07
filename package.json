@@ -4,7 +4,7 @@
   "description": "ChatGPT向けLocal MCP Coding Bridge。Approved Folder制御、Native Desktop操作、Session記録、Multi-agentを提供します。",
   "license": "MIT",
   "author": "Chat On Steroids",
-  "homepage": "https://github.com/Shota-Zaki/chat-on-steroids",
+  "homepage": "https://github.com/totec448-spec/chat-on-steroids",
   "desktopName": "com.chatonsteroids.app.desktop",
   "main": "out/main/index.js",
   "scripts": {
