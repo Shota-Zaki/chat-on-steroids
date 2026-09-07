@@ -137,6 +137,8 @@
     ['add specific loop', '具体的なLoopを追加'],
     ['working…', '処理中…'],
     ['A worker chat is already driven by its prime.', 'ワーカーチャットはすでにPrimeによって制御されています。'],
+    ['This chat is blocked in the app. Release it there to drive it again.', 'このチャットはアプリでブロックされています。再開するにはアプリ側でブロックを解除してください。'],
+    ['Add an OpenRouter API key in the app first.', '先にアプリでOpenRouter APIキーを追加してください。'],
     ['Pick Goal or Loop above first — Off writes nothing.', '先にGoalまたはLoopを選択してください。Offではメッセージを生成しません。'],
     ['Write what this chat has to reach. It then prompts until it is reached, and stops there.', 'このチャットで達成する内容を入力してください。達成するまで継続し、達成後に停止します。'],
     ['Write what this chat has to reach. It then prompts for ever — nothing but the Loop slider ends it.', 'このチャットで達成する内容を入力してください。Loopスライダーをオフにするまで継続します。'],
