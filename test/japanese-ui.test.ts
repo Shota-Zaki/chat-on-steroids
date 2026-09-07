@@ -104,6 +104,8 @@ describe('Japanese UI localization', () => {
       ['add specific loop', '具体的なLoopを追加'],
       ['working…', '処理中…'],
       ['A worker chat is already driven by its prime.', 'ワーカーチャットはすでにPrimeによって制御されています。'],
+      ['This chat is blocked in the app. Release it there to drive it again.', 'このチャットはアプリでブロックされています。再開するにはアプリ側でブロックを解除してください。'],
+      ['Add an OpenRouter API key in the app first.', '先にアプリでOpenRouter APIキーを追加してください。'],
       ['Pick Goal or Loop above first — Off writes nothing.', '先にGoalまたはLoopを選択してください。Offではメッセージを生成しません。']
     ]) {
       expect(source).toContain(english);
