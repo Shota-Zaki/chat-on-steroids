@@ -1,4 +1,5 @@
 import { installJapaneseUi, translateJapaneseUiText } from './ja-ui.js';
+import { installJapaneseTimelineUi } from './ja-timeline.js';
 
 /**
  * The handful of DOM helpers both panels need.
@@ -8,6 +9,7 @@ import { installJapaneseUi, translateJapaneseUiText } from './ja-ui.js';
  */
 
 installJapaneseUi();
+installJapaneseTimelineUi();
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
