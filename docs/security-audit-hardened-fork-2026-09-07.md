@@ -12,7 +12,7 @@ Working Branch: `work`
 
 このDocumentは、個人用Hardened Forkに対して実施したStatic Security ReviewとHardening変更を記録します。
 
-**Runtime Verificationは未完了です。** このAudit中、Forkの`work` Branch / Draft PRに対するGitHub Actions Runを確認できず、`npm run verify`のPassも観測していません。本DocumentをRuntime Certificationとして扱わないでください。
+**Runtime Verificationは未完了です。** このForkではGitHub Actionsを使用しません。`npm run verify`、Package / Smoke Test、Windows実機確認は対象CommitをLocal Checkoutして実行し、その実行結果をVerificationの正本とします。本DocumentをRuntime Certificationとして扱わないでください。
 
 ## 要約
 
@@ -112,6 +112,29 @@ Personal Forkの利用者向け表示を日本語へ統一しました。
 
 Regressionとして`test/japanese-ui.test.ts`を追加し、日本語化対象と保護対象の両方を固定しています。
 
+## 修正済み — H-04: 日本語化がRenderer Testへ副作用を与える
+
+日本語化処理を`dom.ts` Import時に無条件で起動すると、JSDOM Testの`https://local.test/`等でもMutationObserverが動き、既存Testの英語表示契約を書き換える可能性がありました。
+
+### 修正後
+
+- Packaged `file://` Rendererでは日本語化を有効化
+- Local Developmentのlocalhost / 127.0.0.1 / IPv6 Loopbackでは有効化
+- JSDOM Test Harnessや想定外Originでは自動Localizationを起動しない
+- 相対時刻Formatterも実アプリOriginだけ日本語表示し、Test環境では従来Contractを維持
+- Origin Boundary Regression Testを追加
+
+## 修正済み — H-05: ForkにReleaseが無い場合のUpdate 404
+
+Hardened ForkのRelease TrustをFork自身へ固定した直後は、ForkにPublished Releaseが存在しないためGitHub `releases/latest` APIが404を返します。従来Updaterはこの404を通常Failureとして`stage: failed`へ落としていました。
+
+### 修正後
+
+- latest Release APIの404だけを「ForkにPublished Releaseがまだ無い」という正常状態として扱う
+- `checkedAt`を更新し、`latest = null / stage = idle / error = null`へ戻す
+- 503、Checksum取得404、Asset Download失敗、Hash不一致等の本来のFailureは従来通りFail Closed
+- `test/hardened-no-release-update.test.ts`を追加
+
 ## 確認済みの既存Security Control
 
 ### File System Boundary
@@ -199,7 +222,7 @@ Audit時点:
 - ripgrep: `15.2.0`
 - 対応OS / ArchitectureごとにSHA-256固定
 
-Release Workflowの主要GitHub ActionもCommit SHA固定です。
+Repositoryにはupstream由来のWorkflow定義も残っていますが、このForkではGitHub ActionsをVerification Authorityとして使用しません。
 
 ## 残存Risk / Follow-up
 
@@ -250,7 +273,19 @@ Reference:
 
 Severity: **Audit時点Low**
 
-ProjectはElectron `43.4.1`をPinしています。Audit時に確認したSecurity Advisoryでは`43.4.1`をAffectedとするものは確認されませんでした。Electron Updateを行う場合はLockfileを再生成し、RepositoryのNative / Package Verification Matrixを実行してください。
+ProjectはElectron `43.4.1`をPinしています。Audit時に確認したSecurity Advisoryでは`43.4.1`をAffectedとするものは確認されませんでした。Electron Updateを行う場合はLockfileを再生成し、RepositoryのNative / Package Verification MatrixをLocalで実行してください。
+
+## Verification方針
+
+このForkではGitHub Actionsを使用しません。
+
+- GitHub Actionsを有効化・手動実行・再実行しない
+- `.github/workflows/`はupstream互換 / 参照目的で残してよいが、Pass判定には使わない
+- Exact Reviewed CommitをLocal Checkoutして検証する
+- `npm run verify`の実行結果を正本とする
+- OS固有項目は対象OSの実機 / Package上で確認する
+- Windows優先で、mainPC上の実機結果をWindows版の正本とする
+- 未実行項目は未検証として明記し、Pass扱いしない
 
 ## Verification状態
 
@@ -262,12 +297,13 @@ ProjectはElectron `43.4.1`をPinしています。Audit時に確認したSecuri
 - 新Security Contractに合わせAdjacent Test更新
 - Hardened Release Source Regression追加
 - Japanese UI Boundary Regression追加
+- No-release Update Regression追加
 - README / SECURITYを実際のDefault / 日本語UI方針へ同期
 - MCP / File System / Command / Desktop / Renderer / Secret / Update / Packaging BoundaryをStatic Review
 
 ### 未完了
 
-- `npm run verify` — **実行成功を未確認**
+- `npm run verify` — **Local実行成功を未確認**
 - Windows Packaged Smoke — **未実行**
 - macOS Packaged Smoke — **未実行**
 - Linux Packaged Smoke — **未実行**
@@ -276,16 +312,17 @@ ProjectはElectron `43.4.1`をPinしています。Audit時に確認したSecuri
 - `node-pty` Windows Regression再現 — **未実行**
 - 日本語UIのPackaged実画面確認 — **未実行**
 
-Audit時点でForkのDraft PR / `work` Branchに対するGitHub Actions Workflow Runは確認できませんでした。この状態はVerification Blockerであり、Pass / Failの証拠ではありません。
+GitHub ActionsのRun有無は、このForkのVerification状態には使用しません。
 
 ## このForkのRelease Gate
 
 以下をすべて満たすまでHardened Fork Releaseを公開・Installしないこと。
 
-1. ForkでGitHub Actionsを有効化する。
-2. Exact Reviewed Commitで`npm run verify`がPassする。
+1. Exact Reviewed CommitをLocal Checkoutする。
+2. Local環境で`npm run verify`がPassする。
 3. Native Windows Packaging / SmokeがPassする。
 4. 現在の`node-pty` Reportを考慮し、Windowsで`tty=true` + `write_stdin`を実際に検証する。
 5. Built Releaseが`SHA256SUMS.txt`を公開し、Installer Hashを独立確認する。
 6. Update / Manual Download / Extension Recoveryがすべて`Shota-Zaki/chat-on-steroids`配下であることをRegressionで確認する。
 7. Desktop App / Tray / Notification / Chrome Extension Popup / ChatGPT Overlayの日本語表示をPackaged Buildで確認する。
+8. macOS / LinuxをRelease対象に含める場合は、それぞれのPackage / Smoke Testを対象OSで実行する。未検証OSはRelease対象外として明記する。
