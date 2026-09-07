@@ -17,6 +17,16 @@ describe('Japanese UI localization', () => {
     );
   });
 
+  it('preserves dynamic payload bytes while translating surrounding UI chrome', () => {
+    expect(translateJapaneseUiText('Rename /My  Folder')).toBe('/My  Folder の名前を変更');
+    expect(translateJapaneseUiText('Extension folder: C:\\My  Folder')).toBe(
+      '拡張機能フォルダー: C:\\My  Folder'
+    );
+    expect(translateJapaneseUiText('Could not check for a newer version: E  42.')).toBe(
+      '新しいバージョンを確認できませんでした: E  42。'
+    );
+  });
+
   it('installs automatic localization only in packaged and local development renderer origins', () => {
     expect(shouldInstallJapaneseUi({ protocol: 'file:', hostname: '' })).toBe(true);
     expect(shouldInstallJapaneseUi({ protocol: 'http:', hostname: 'localhost' })).toBe(true);
@@ -77,6 +87,13 @@ describe('Japanese UI localization', () => {
     }
     expect(source).not.toContain("'#sessionList'");
     expect(source).not.toContain("'#rootList'");
+  });
+
+  it('keeps dynamic pattern captures byte-preserving across renderer localization layers', () => {
+    for (const file of ['ja.ts', 'ja-runtime.ts', 'ja-ui.ts', 'ja-timeline.ts', 'ja-composite.ts', 'ja-setup.ts']) {
+      const source = readFileSync(new URL(`../src/renderer/${file}`, import.meta.url), 'utf8');
+      expect(source).not.toContain('pattern.exec(normalized)');
+    }
   });
 
   it('keeps tool payloads, bootstrap text, and goal/model data outside the companion localization boundary', () => {
