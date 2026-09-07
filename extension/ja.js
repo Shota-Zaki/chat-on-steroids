@@ -212,7 +212,8 @@
   const protectedSelector = [
     'script', 'style', 'code', 'pre', 'textarea',
     '.clf-stream-text', '.clf-stream-tool-panel', '.clf-stream-tool-change',
-    '.clf-tool-detail', '.clf-boot-preview', '.clf-stage-detail'
+    '.clf-tool-detail', '.clf-boot-preview', '.clf-stage-detail', '.clf-stage-body',
+    '.clf-menu-goal-text', '.clf-menu-goal-note[data-clf-warn="1"]'
   ].join(',');
   const popup = location.protocol === 'chrome-extension:';
   if (popup) document.documentElement.lang = 'ja';
