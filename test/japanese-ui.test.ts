@@ -10,6 +10,8 @@ describe('Japanese UI localization', () => {
     expect(translateJapaneseUiText('Connected · Port 8765')).toBe('接続済み · ポート 8765');
     expect(translateJapaneseUiText('Rename /project')).toBe('/project の名前を変更');
     expect(translateJapaneseUiText('Open this chat in Chrome')).toBe('このチャットをChromeで開く');
+    expect(translateJapaneseUiText('Starting')).toBe('起動中');
+    expect(translateJapaneseUiText('3 of 8 permissions')).toBe('8件中3件の権限がオン');
     expect(translateJapaneseUiText('Usage could not be loaded. Try Refresh.')).toBe(
       '使用状況を読み込めませんでした。「更新」をお試しください。'
     );
@@ -60,6 +62,8 @@ describe('Japanese UI localization', () => {
     for (const protectedSelector of [
       '#timeline',
       '#handoffBox',
+      '#activeGoalRow',
+      '#composerImages',
       '#connectorCards',
       '#fullFeed',
       '#homeFeed',
@@ -121,11 +125,16 @@ describe('Japanese UI localization', () => {
 
   it('keeps renderer DOM localization under one protected observer owner', () => {
     const dictionary = readFileSync(new URL('../src/renderer/ja.ts', import.meta.url), 'utf8');
+    const runtime = readFileSync(new URL('../src/renderer/ja-runtime.ts', import.meta.url), 'utf8');
     const presentation = readFileSync(new URL('../src/renderer/ja-ui.ts', import.meta.url), 'utf8');
+    const dom = readFileSync(new URL('../src/renderer/dom.ts', import.meta.url), 'utf8');
     expect(dictionary).not.toContain('new MutationObserver');
     expect(dictionary).not.toContain('export function installJapaneseUi');
+    expect(runtime).not.toContain('new MutationObserver');
+    expect(runtime).not.toContain('installJapaneseRuntimeUi');
     expect(presentation).toContain('new MutationObserver');
     expect(presentation).toContain('export function installJapaneseUi');
+    expect(dom).not.toContain('installJapaneseRuntimeUi');
   });
 
   it('requires the Japanese companion file in packaged runtime and release zip gates', () => {
