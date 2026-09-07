@@ -1,4 +1,5 @@
 import { translateUiText } from './ja.js';
+import { translateJapaneseRuntimeText } from './ja-runtime.js';
 
 const ATTRIBUTES = ['title', 'aria-label', 'placeholder'] as const;
 const normalize = (value: string): string => value.trim().replace(/\s+/g, ' ');
@@ -115,6 +116,8 @@ const EXTRA_PATTERNS: Array<[RegExp, (...parts: string[]) => string]> = [
 export function translateJapaneseUiText(value: string): string {
   const base = translateUiText(value);
   if (base !== value) return base;
+  const runtime = translateJapaneseRuntimeText(value);
+  if (runtime !== value) return runtime;
   const normalized = normalize(value);
   const exact = EXTRA.get(normalized);
   if (exact) return exact;
