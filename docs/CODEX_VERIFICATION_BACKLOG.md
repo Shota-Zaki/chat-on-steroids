@@ -19,7 +19,8 @@ GitHub Actionsは使用しません。
 - `npm run verify:privacy`: PASS
 - `test/public-history-privacy.test.ts`: 16/16 PASS
 - `npm run verify`: PASS — 117 test files passed, 1 skipped; 2,934 tests passed, 23 skipped; shutdown suite 2/2 passed
-- `npm audit`: FAIL — 2件（moderate 1 / high 1）。`@xmldom/xmldom` と `fast-uri` はいずれも `electron-builder` 配下の dev-only dependency で、`npm ls --omit=dev` と packaged `app.asar`には到達しないことを確認。強制Upgradeは未実施。
+- `npm audit --omit=dev`: PASS — production dependency findings 0件。ただしroot auditだけではproduction dependency内部へbundle / vendorされたコードの安全性を保証しない。
+- `npm audit`: FAIL — `@xmldom/xmldom@0.8.14` moderateとroot `fast-uri@3.1.5` highは`electron-builder`配下のdev dependency。別途、MCP SDK `@modelcontextprotocol/server@2.0.0`の生成物に`fast-uri@3.1.0`相当コードがbundleされ、既存`app.asar`にも同梱されることを確認。App-level exploit pathは未確認のためResidual Riskとして継続管理し、強制Upgradeは未実施。
 - `npm run dist:x64`: PASS — Windows x64 NSIS Installer / unpacked payloadを生成。Installer SHA-256: `32C28FF0551A1B76C596336DA7B95FB540CEE44BE7B6A136B574392661BE1A80`
 - MCP / `exec_command` / `write_stdin` / node-pty契約 / Bridge / attribution / fresh-default focused suites: PASS — 7 files, 565 passed, 4 skipped
 - Windows fresh install: PASS — Installer exit 0。生成payload、Uninstaller、user-data初期化を確認。
@@ -277,9 +278,9 @@ npm run verify
 
 **対象:** `scripts/verify-public-history.mjs`、`test/public-history-privacy.test.ts`、`main..work`の到達可能な未統合Commit History
 
-**状態:** **History Rewrite completed / Privacy Gate PASS / Regression PASS / Full Local Verification PASS**
+**状態:** **Completed / Historical — History Rewrite、Privacy Gate PASS、Regression PASS、Full Local Verification PASS。再実行不要。**
 
-**Static判断:** 現在の`main..work`に、GitHub noreplyではないFork Maintainer Author / Committer metadataを持つ到達可能な未統合Commitが存在することをGitHub上で確認した。個人メール値そのものはDocument / PR本文へ記録しない。したがって「Rewriteが必要か」は未決ではなく、**`work`の未統合History Rewriteが必要**と判断する。
+**Historical trigger:** Rewrite前の`main..work`に、GitHub noreplyではないFork Maintainer Author / Committer metadataを持つ到達可能な未統合Commitが存在した。個人メール値そのものはDocument / PR本文へ記録しない。これは下記の修復で解決済みであり、今回再実行する作業ではない。
 
 **Privacy Gate修正範囲:**
 
@@ -294,102 +295,9 @@ npm run verify
 
 **目的:** Fork用Privacy Gateと実Historyの両方を整合させ、公開前のFork Historyに個人メールアドレスを残さない。
 
-**実測結果:** Rewrite前の`work`先端をBundleへ保存し、`main..work`の124コミットのunsafe Maintainer Author / Committer emailだけを修正した。Rewrite後の`work`は125コミット先行のまま、最終Tree・全commit tree・commit message・名前・日時は不変で、Fork `main` / upstream `main`は変更していない。Privacy Gateはexit code 0、Privacy Regressionは16/16、Full Local Verificationも成功した。個人メール値は記録しない。
+**Historical result:** Rewrite前の`work`先端をBundleへ保存し、当時の`main..work`の124コミットについてunsafe Maintainer Author / Committer metadataだけを修正した。Rewrite後のTree、commit message、名前、日時は不変で、Fork `main` / upstream `main`は変更していない。Privacy Gateはexit code 0、Privacy Regressionは16/16、Full Local Verificationも成功した。以後は通常の`npm run verify:privacy`で新規Commitを検査し、History Rewriteやforce pushは行わない。
 
-### Codex手順
-
-① **Remote / HEADを再取得し、Rewrite対象を固定する**
-
-```sh
-git fetch --all --prune
-git remote -v
-git rev-parse main work
-git rev-list --left-right --count main...work
-```
-
-- Fork `main` / `work`とupstream `main`の現在値をGitHub側と照合する。
-- PR #1がDraftであることを確認する。
-- 新Branchは作成しない。
-
-② **今後のMaintainer IdentityをGitHub noreplyへ固定する**
-
-```sh
-git config user.name Shota-Zaki
-git config user.email 246847859+Shota-Zaki@users.noreply.github.com
-```
-
-Repository Local Configを優先する。個人Emailは設定・Log・Documentへ転記しない。
-
-③ **未統合HistoryをLocalだけで監査する**
-
-```sh
-git log main..work --format='%H %an <%ae> | %cn <%ce>'
-npm run verify:privacy
-```
-
-- non-noreply Maintainer identityを検出する。
-- Terminal上の個人値をIssue / PR / DocumentへCopyしない。
-- Privacy Gateを`--no-verify`等でBypassしない。
-
-④ **Rewrite前BackupをBranchではなくBundleで保存する**
-
-```sh
-git bundle create ../chat-on-steroids-v013-before-rewrite.bundle main work
-```
-
-新しいGit Branchを作らず、Rollback用のLocal BundleだけをRepository外へ保存する。
-
-⑤ **`main`を触らず、`main..work`だけのMetadataをRewriteする**
-
-- 対象は`work`へ到達し、Fork `main`へ到達しないCommitだけ。
-- `Shota-Zaki` MaintainerのAuthor / CommitterがGitHub noreplyでない場合だけnoreplyへ置換する。
-- 他ContributorのAuthor / Committer identity、Commit Message、Tree内容は変更しない。
-- `main` / upstream HistoryはRewriteしない。
-- `--reset-author`等で全AuthorをMaintainerへ一括置換しない。
-- 使用可能なら`git filter-repo`の`--refs work` + reviewed callbackを優先する。Toolが無い場合は、その場で別方式へ機械的に切り替えず、Tree不変を検証できる方式を選ぶ。
-
-Rewrite前に次を保存する。
-
-```sh
-old_work=$(git rev-parse work)
-old_tree=$(git rev-parse 'work^{tree}')
-```
-
-⑥ **Tree / Diff不変を検証する**
-
-```sh
-test "$old_tree" = "$(git rev-parse 'work^{tree}')"
-git diff --exit-code "$old_work^{tree}" 'work^{tree}'
-git diff --stat main...work
-```
-
-History Rewriteの目的はMetadata修復だけであり、Source / Documentの最終Tree内容を変えない。
-
-⑦ **Privacy GateとFull VerificationをLocal実行する**
-
-```sh
-npm run verify:privacy
-npm run verify
-```
-
-実際にexit code 0を確認した場合だけPassとする。V-001〜V-011の実機 / Package項目は各項目どおり別途実施する。
-
-⑧ **Remote競合が無いことを再確認してから`work`だけForce-with-leaseする**
-
-```sh
-git fetch origin work
-git rev-parse refs/remotes/origin/work
-```
-
-取得したRemote `work`がRewrite開始時に固定した旧Remote HEADと一致する場合だけ、旧SHAを明示した`--force-with-lease`で`work`を更新する。`main`へPushしない。Remoteが進んでいた場合はForce Pushせず停止し、差分を再評価する。
-
-⑨ **Push後にGitHub正本を再取得する**
-
-- `work` HEAD / `main` HEAD / upstream `main` HEAD
-- `main...work` ahead / behind
-- PR #1がDraftのまま
-- `main..work`のMaintainer Author / CommitterがGitHub noreplyのみ
-- `npm run verify:privacy` / `npm run verify`の対象CommitがPush後HEADと一致
+**Current invariant:** Maintainerは`Shota-Zaki`、許可EmailはGitHub `users.noreply.github.com`形式、Published BoundaryはURLが完全一致する`Shota-Zaki/chat-on-steroids` Remoteの`main`だけである。upstream / unrelated RemoteをForkのPublished BoundaryとしてTrustせず、個人メール値をIssue / PR / Documentへ転記しない。
 
 **完了条件:** History Rewrite、Privacy Gate、Local Verification、Package、Windows startup / Bridge securityは確認済み。Native UI、正式pairing / reconnect、Live MCP / attributionは未検証のため、PR #1はDraftを維持し、Merge / Release禁止は継続する。
 

@@ -144,24 +144,31 @@ Severity: **Audit時点Low**
 
 ProjectはElectron `43.4.1`をPinしています。
 
-### R-08 — npm auditのdev-only脆弱性
+### R-08 — fast-uriのMCP SDK bundled code / npm audit分類
 
-Severity: **Moderate 1 / High 1。Build-time dependency risk**
+Severity: **High advisory applicability / Residual Risk。App-level exploit pathは未確認**
 
-`npm audit`は次の2件を検出しました。
+`npm audit --omit=dev`は **0 findings** です。ただしこれはproduction dependency graph上のfindingがないことを示すだけで、production dependency内部へbundle / vendorされた既知脆弱コードがないことまでは証明しません。
 
+今回確認した事実は分離して扱います。
+
+- rootの`fast-uri@3.1.5` — `ajv → app-builder-lib → electron-builder`経由のdev dependency。GHSA-5jgf-p345-68v8、GHSA-f65p-4m7j-42xc、GHSA-fph4-wmhf-6fwf、GHSA-jqff-g426-hqxp、GHSA high。`npm audit`のfindingはこちらです。
 - `@xmldom/xmldom@0.8.14` — `plist`経由の`electron-builder` dev dependency。GHSA-6gmq-8vp8-gcm6、moderate。
-- `fast-uri@3.1.5` — `ajv → app-builder-lib → electron-builder`経由のdev dependency。GHSA-5jgf-p345-68v8、GHSA-f65p-4m7j-42xc、GHSA-fph4-wmhf-6fwf、GHSA-jqff-g426-hqxp、high。
+- MCP SDKの`@modelcontextprotocol/server@2.0.0` — `ajvProvider`の生成CJS / ESM outputへ`fast-uri@3.1.0`相当コードをbundleしており、既存Windows `app.asar`にも同じコードが同梱されることを確認した。
+- worker-2の単体検証では、影響するURI normalization挙動が依存ライブラリ単体で再現されている。
+- 現時点のApplication code reviewでは、当該URI処理をこのアプリのSecurity boundary、Permission判定、外部通信許可判断へ到達させるapp-level exploit pathは確認されていない。
 
-`npm ls --omit=dev`は両方とも空で、生成したWindows `app.asar`にも両パッケージ名および`electron-builder` runtime payloadはありませんでした。したがって現時点の分類は**配布runtimeへ非到達のBuild-time依存**です。`npm audit fix --force`や広範なDependency Upgradeは行っていません。上流の安全な解消版が利用可能になった時点で、lockfile、package生成、監査を再検証します。
+したがって「Build時のみ」「Runtimeへの影響なし」「`npm audit --omit=dev = 0`なのでRuntime安全」という分類は採用しない。一方、bundleされた影響コードの存在だけでアプリケーション脆弱性の成立とも断定しない。現時点では**Runtime Artifact同梱を伴うResidual Riskとして継続管理**する。
+
+MCP SDKの現行利用版は`@modelcontextprotocol/node` / `server` / `core` **2.0.0**で、npm公開最新版も2.0.0だった。より新しい互換版でbundleが更新・除去された候補は確認できず、root側の`fast-uri` pin追加・更新だけではSDK生成物のbundleは変わらない。SDK更新はAPI / Runtime挙動とRegression範囲を広げるため、今回のPRには入れない。上流SDKがbundle修正を含む互換版を公開した時点で、lockfile、`app.asar`、URI regression、full verifyを再評価する。
 
 ### R-07 — Commit Metadata Privacy / Privacy Gate Fork Migration
 
-Severity: **High / Privacy / Release Blocker**
+Status: **Completed / Historical。再実行不要**
 
 **Root Cause:** Public-history Privacy Gateはupstream運用から移行されており、Fork Maintainer判定は`Shota-Zaki`へ変更済みでしたが、Published Boundaryに`origin/main` Fallbackが残り、Regression Testもupstream Maintainer / upstream Repository前提のままでした。`origin`がupstreamを指すCloneでは、ForkのPublished BoundaryではないHistoryを誤って公開済み扱いする余地がありました。
 
-**影響:** `main..work`の未統合HistoryにGitHub noreplyではないFork Maintainer Author / Committer metadataが残ったままMerge / Releaseすると、そのmetadataが公開Git Historyへ固定されます。また誤ったPublished BoundaryはPrivacy Gateの検出範囲を狭める可能性があります。
+**Historical impact:** `main..work`の未統合HistoryにGitHub noreplyではないFork Maintainer Author / Committer metadataが残ったままMerge / Releaseすると、そのmetadataが公開Git Historyへ固定される状態でした。また誤ったPublished BoundaryはPrivacy Gateの検出範囲を狭める可能性がありました。この問題は下記の修復で解決済みであり、今回再実行する作業ではありません。
 
 **修正済み範囲:** `scripts/verify-public-history.mjs`はMaintainerを`Shota-Zaki`、許可形式をGitHub noreplyに限定し、Published BoundaryをURLが完全一致する`Shota-Zaki/chat-on-steroids`のRemote `main`だけに限定しました。Fork RemoteまたはそのFetched `main`が無い場合は何も公開済み扱いせず、`origin/main`へFallbackしません。Regression TestもFork MaintainerとFork Published Boundaryへ移行し、非noreply Fixtureには実在個人アドレスを使用しません。
 
@@ -169,7 +176,7 @@ Severity: **High / Privacy / Release Blocker**
 
 **Release Blocker:** **CONDITIONAL**。V-013、Local Verification、Package、fresh install、startup、Bridge auth、node-pty smoke、restart、uninstallは完了しました。Tray / Packaged UIの実画面確認、正式Chrome pairing / reconnect、Live MCP / attributionはこの環境で未実行のため、PR #1はDraftを維持し、Merge / Releaseしません。
 
-**Codex Verification:** `docs/CODEX_VERIFICATION_BACKLOG.md`のV-013を正本とします。`main` / upstream Historyを変更せず、Tree内容の不変を検証したうえで`work`の未統合Historyだけを修復します。
+**Codex Verification:** `docs/CODEX_VERIFICATION_BACKLOG.md`のV-013を正本とします。当時、`main` / upstream Historyを変更せず、Tree内容の不変を検証したうえで`work`の未統合Historyだけを修復しました。以後は通常のPrivacy Gateで新規Commitを検査し、History Rewriteやforce pushは行いません。
 
 ## Verification方針
 
@@ -206,7 +213,8 @@ Severity: **High / Privacy / Release Blocker**
 - V-013 Privacy Regression — **16/16 PASS**
 - `npm ci` — **PASS**
 - `npm run verify` — **PASS**
-- `npm audit` — **FAIL / 要対応**（2件。ただし両方dev-only、配布runtime非到達を確認）
+- `npm audit --omit=dev` — **PASS**（production dependency findings 0件。ただしbundle / vendored codeの安全性証明ではない）
+- `npm audit` — **FAIL / dev dependency findings**（`@xmldom/xmldom` moderate、root `fast-uri@3.1.5` high。別途、MCP SDK bundleの`fast-uri@3.1.0`相当コードはRuntime Artifactへ同梱されるため、R-08のResidual Riskとして管理）
 - `npm run dist:x64` — **PASS**（Windows x64 NSIS Installer生成、unpacked payload生成、native payload checksum検証）
 - MCP / `exec_command` / `write_stdin` / node-pty契約 / Bridge / attribution / fresh-default focused suite — **PASS**（7 files, 565 passed, 4 skipped）
 - Windows fresh install / startup / renderer / Bridge auth — **PASS**（Installer exit 0、window loaded、8765 listener、tokenなしendpoint 401）

@@ -49,6 +49,8 @@ ChatGPTは優秀でも、通常はText Boxの中だけで動きます。Develope
 
 ## ダウンロード
 
+> **Hardened Forkの公開状態:** このForkでは現在、GitHub Release Artifactを公開していません。以下のDownload URLは将来のRelease用で、現時点では404になる場合があります。検証済みArtifactが必要な場合は、対象の`work` checkoutからLocal Buildしてください。
+
 | Platform | x64 | ARM64 |
 | --- | --- | --- |
 | **Windows** | [Installer](../../releases/latest/download/Chat-On-Steroids-Setup-x64.exe) | [Installer](../../releases/latest/download/Chat-On-Steroids-Setup-arm64.exe) |
@@ -165,7 +167,7 @@ Workerは再利用可能なConversationです。Resultを返すとSleepし、Slo
 
 各Primeは自身のWorker Historyを所有します。最後のWorkerがSleepしたRunはParkされ、別Chatが新しいRunを開始できます。元Primeは`agents action=status`からHistoryを確認し、Workerを再利用できます。Multi-agentをOFFにしてもHistoryは保持し、**Swarmをクリア**した場合だけ破棄します。
 
-Identity-sensitive ActionはFail Closedです。Spawn / Message等にはExtensionがCaller Conversationを証明する必要があります。Extensionから見えない場所で使用したChatは通常Core Toolを利用できますが、Agent Controlはできません。
+Identity-sensitiveな操作は、ExtensionがCaller Conversationを証明できる場合だけ実行します。対象にはSpawn / MessageなどのSwarm操作、Workspace attributionを必要とする相対Path・既定Workspace操作、Retired / Dormant Workerの曖昧な呼び出しが含まれます。自己完結した通常のCore操作まで一律に拒否する保証ではなく、Extensionから見えないChatは通常Core Toolを利用できてもAgent Controlや他ChatのInboxを取得できません。
 
 ### ChatのBlock
 

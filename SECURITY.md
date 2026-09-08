@@ -33,6 +33,7 @@ Chat On Steroidsは、ChatGPTと、このアプリを実行しているLogged-in
 - **Application-level Path CheckはKernel / VM Sandboxではありません。** File Toolを大きく制限しますが、同一User権限のLocal ProcessとのFile System Raceなどを完全隔離するものではありません。Approved RootをHostile Local Processからの隔離境界として扱わないでください。
 - **CommandとDesktop CapabilityはDesign上強力です。** 有効化すると、通常のOS権限境界の範囲でLogged-in Userが操作できる場所へ作用できます。
 - **Session Recordingは詳細であり、`safeStorage`では暗号化されません。** 記録した会話やTool ActivityはLocalに保存されますが、OS Accountへアクセスできる別User / Processから読まれる可能性があります。
+- **Caller attributionは全Core操作に対する一律拒否ではありません。** `multiAgent.allowUnattributedCalls=false`の状態では、SwarmのWorkspace-sensitive操作、Spawn / MessageなどのAgent Control、Retired / Dormant Workerの曖昧な呼び出しなど、Kernelが明示的にConversation identityを必要とする操作を、正確なExtension evidenceなしでは拒否します。自己完結した通常のCore操作は別扱いであり、attribution不明だけを理由に全操作を拒否する保証ではありません。
 
 ## Scope
 
