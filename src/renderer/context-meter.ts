@@ -2,6 +2,10 @@ import type { Config } from '../shared/types.js';
 import type { SessionSummary } from '../shared/session.js';
 import type { ReasoningEffort } from '../shared/session.js';
 import { isProModel } from '../shared/chat-models.js';
+import { shouldInstallJapaneseUi } from './ja-origin.js';
+
+const japanesePresentation =
+  typeof window !== 'undefined' && shouldInstallJapaneseUi(window.location);
 
 /** Recorder estimates, never a claim about the provider's exact context window. */
 export function paintContextMeter(session: SessionSummary | null, config: Config, composer: { model: string; reasoningEffort: ReasoningEffort } | null = null): void {
@@ -19,9 +23,18 @@ export function paintContextMeter(session: SessionSummary | null, config: Config
   const percent = limit > 0 ? Math.min(100, Math.round(used / limit * 100)) : 0;
   arc.setAttribute('stroke-dasharray', `${pro ? 0 : percent * 0.377} 37.7`);
   const tokens = new Intl.NumberFormat().format(used);
-  panel.textContent = pro
-    ? `Session context · estimated\n${tokens} tokens used\nAuto-compaction off for Pro`
-    : `Session context · estimated\n${tokens} / ${new Intl.NumberFormat().format(limit)} tokens · ${percent}% of configured limit\n${config.compaction.auto ? `Auto-compaction at ${new Intl.NumberFormat().format(config.compaction.autoTokens)} tokens` : 'Auto-compaction off'}`;
+  const formattedLimit = new Intl.NumberFormat().format(limit);
+  const formattedAuto = new Intl.NumberFormat().format(config.compaction.autoTokens);
+
+  if (japanesePresentation) {
+    panel.textContent = pro
+      ? `セッションコンテキスト · 推定\n${tokens}トークン使用\nProでは自動コンパクト: オフ`
+      : `セッションコンテキスト · 推定\n${tokens} / ${formattedLimit}トークン · 設定上限の${percent}%\n${config.compaction.auto ? `${formattedAuto}トークンで自動コンパクト` : '自動コンパクト: オフ'}`;
+  } else {
+    panel.textContent = pro
+      ? `Session context · estimated\n${tokens} tokens used\nAuto-compaction off for Pro`
+      : `Session context · estimated\n${tokens} / ${formattedLimit} tokens · ${percent}% of configured limit\n${config.compaction.auto ? `Auto-compaction at ${formattedAuto} tokens` : 'Auto-compaction off'}`;
+  }
   button.setAttribute('aria-label', panel.textContent.replaceAll('\n', '. '));
 }
 

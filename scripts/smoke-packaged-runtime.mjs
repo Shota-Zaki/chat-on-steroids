@@ -72,6 +72,7 @@ for (const relative of [
   'extension/background.js',
   'extension/chatgpt-dom.js',
   'extension/content.js',
+  'extension/ja.js',
   'extension/fiber.js',
   'extension/overlay.css',
   'extension/popup.html',

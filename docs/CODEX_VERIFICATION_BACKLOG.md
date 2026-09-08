@@ -1,0 +1,331 @@
+# Codex Verification Backlog
+
+このDocumentは、Chatで進行したStatic Review / Implementationのうち、Local実行が必要なVerificationを次回Codex作業でまとめて実施するためのBacklogです。
+
+GitHub Actionsは使用しません。
+
+## Status
+
+- Chat側: Static Review / Implementation / V-013 remediation completed
+- Local Verification: V-013 Privacy Gate and full local verification completed
+- Pass判定: 実際にLocal Command / Package / 実機確認を実行した項目のみ
+- Release: Native UI / formal pairing / Live MCP verification完了までConditionally Ready
+
+### Latest Codex verification
+
+- Rewrite前のRemote `work`をBundleへ保存し、`main..work`の124 unsafe Maintainer metadata commitsだけをnoreplyへ修復した。
+- `main` / upstream `main`のSHA、全commit tree、commit message、名前・日時を不変として確認した。
+- `npm ci`: PASS
+- `npm run verify:privacy`: PASS
+- `test/public-history-privacy.test.ts`: 16/16 PASS
+- `npm run verify`: PASS — 117 test files passed, 1 skipped; 2,934 tests passed, 23 skipped; shutdown suite 2/2 passed
+- `npm audit --omit=dev`: PASS — production dependency findings 0件。ただしroot auditだけではproduction dependency内部へbundle / vendorされたコードの安全性を保証しない。
+- `npm audit`: FAIL — `@xmldom/xmldom@0.8.14` moderateとroot `fast-uri@3.1.5` highは`electron-builder`配下のdev dependency。別途、MCP SDK `@modelcontextprotocol/server@2.0.0`の生成物に`fast-uri@3.1.0`相当コードがbundleされ、既存`app.asar`にも同梱されることを確認。App-level exploit pathは未確認のためResidual Riskとして継続管理し、強制Upgradeは未実施。
+- `npm run dist:x64`: PASS — Windows x64 NSIS Installer / unpacked payloadを生成。Installer SHA-256: `32C28FF0551A1B76C596336DA7B95FB540CEE44BE7B6A136B574392661BE1A80`
+- MCP / `exec_command` / `write_stdin` / node-pty契約 / Bridge / attribution / fresh-default focused suites: PASS — 7 files, 565 passed, 4 skipped
+- Windows fresh install: PASS — Installer exit 0。生成payload、Uninstaller、user-data初期化を確認。
+- Windows packaged startup / renderer / Bridge auth: PASS — `app started`、`renderer state ready`、`window loaded`、`127.0.0.1:8765`、tokenなしendpointの401を確認。
+- Windows uninstall: PASS — 検証用install directory、process、8765–8769 listenerを除去。user-dataは保持。
+- Packaged node-pty / ConPTY: PASS — payload内の`node-pty 1.2.0-beta.15`をロードし、2セッションで各2回stdin、exit 0、追加`cmd.exe` / `OpenConsole.exe`残留0を確認。
+- Packaged app restart: PASS — 再起動後のprocessと8765 listenerを確認。
+- Live ChatGPT connectivity: PASS — 無害な確認文へ`OK`応答を確認。ツール実行は要求していない。
+- Existing Chrome Extension / ChatGPT tab observation: 部分確認 — Extension browserがロード済みで、packaged appがmodel-catalog tabを開くことを確認。
+- Browser Bridge security checks: PASS — no-token=401、bad-token=401、unsupported-origin=403。
+- Tray / Packaged日本語UI、正式Chrome pairing / reconnect、Live MCP / live attribution: 未検証
+- GitHub Repository settings: PASS — Issuesを有効化。`main`へPR必須・1 approval・admin enforcement・force-push/delete禁止を設定。Required Status Checksは未設定。
+
+## V-001 — Full local verification
+
+**対象:** 次回Codex開始時の`work` HEAD
+
+**目的:** TypeScript / Unit / Integration / Privacy Gateをまとめて確認する。
+
+**Command:**
+
+```sh
+npm ci
+npm run verify
+```
+
+**確認:** exit code 0。Failure時は最初のRoot Causeから修正して再実行する。V-013のCommit Author Privacyが未解決なら、Privacy Gate Failureを無視・Bypassせず先にV-013を解消する。
+
+## V-002 — Japanese UI regression
+
+**対象:** `src/renderer/ja-*.ts`、`extension/ja.js`、日本語化済みRenderer / Popup / Native UI
+
+**目的:** 既存の日本語化が機械契約・User Data・既存Renderer Testを壊していないことを確認する。Runtime / IPC / Bridge / MCP / Model検出等へ変更が必要になる残存英語は日本語化必須条件としない。
+
+**Command候補:**
+
+```sh
+npx vitest run test/japanese-ui.test.ts
+npx vitest run test/renderer-state.test.ts test/renderer-timeline.test.ts test/renderer-layout.test.ts
+npx vitest run test/extension-popup.test.ts test/extension.test.ts
+```
+
+**確認:** `exec_command`、`write_stdin`、`session_finish`、`NO_REPLY`、Error Code、User / Assistant本文、Tool引数 / Result、Pathが翻訳されていないこと。
+
+## V-003 — Hardened defaults regression
+
+**対象:** `src/main/config.ts`
+
+**目的:** Fresh InstallがFail Safeで、既存Config Migrationを勝手に拡張しないことを確認する。
+
+**Command:**
+
+```sh
+npx vitest run test/config.test.ts test/feature-parity.test.ts
+```
+
+**期待:** `readOnly=true`、browse/search/read/metadataのみ初期ON、`allowUnattributedCalls=false`。
+
+**実測:** `test/config.test.ts` / `test/feature-parity.test.ts`を含むfocused suiteはPASS。
+
+## V-004 — Hardened release trust / no-release update
+
+**対象:** `src/shared/release.ts`、`src/main/update.ts`、`src/main/version.ts`
+
+**目的:** Update / Manual Release / Extension RecoveryがForkだけをTrustし、ForkにReleaseが無い404を正常状態として扱うことを確認する。
+
+**Command:**
+
+```sh
+npx vitest run test/hardened-release-source.test.ts test/hardened-no-release-update.test.ts test/update.test.ts
+```
+
+**確認:** 404 latest-releaseのみ`idle / error=null`。503、Checksum404、Asset Failure、Hash MismatchはFailureのまま。
+
+## V-005 — Windows package / runtime smoke
+
+**対象OS:** Windows mainPC
+
+**目的:** Windows版を実Packageで起動し、日本語UIとSecurity Defaultを確認する。
+
+**Command候補:**
+
+```powershell
+npm ci
+npm run dist:x64
+```
+
+生成Installerを検証用環境へInstallし、次を確認する。
+
+- 起動成功
+- Tray Menu日本語
+- Fresh InstallがRead-only
+- File mutation / command / Desktop / Clipboardが初期OFF
+- Update Errorが出ない
+- Chrome Extension Folderを開ける
+- Popupが日本語
+- ChatGPT上のExtension-owned UIが日本語
+
+**実測:** fresh install、startup、renderer、Bridge token境界、restart、uninstallはPASS。Tray、Packaged画面の日本語、正式Chrome pairing / reconnect、Live MCPは未実行。既存artifactは`76076f7..92497b7`が文書差分のみであることを確認し再利用した。
+
+## V-006 — Windows node-pty / interactive terminal
+
+**対象OS:** Windows mainPC
+
+**目的:** `node-pty 1.2.0-beta.15`の既知Regressionが本Repositoryの`tty=true` / `write_stdin`へ影響するか確認する。
+
+**確認Scenario:**
+
+1. `exec_command`を`tty=true`で開始
+2. 最初のOutput / Promptを待つ
+3. `write_stdin`で入力
+4. 複数回stdin送信
+5. Processが早期終了しない
+6. Exit / Output回収が正常
+
+Failure時はbeta Versionを機械的にDowngradeせず、再現条件・stack / error・ConPTY挙動を記録してDependency判断する。
+
+**実測:** MCP / runtime parity testsと、配布payload内node-ptyのConPTY smokeはPASS。Packaged AppのMCP dispatcher経由`tty=true` / `write_stdin`は、command permission OFFのため未実行。
+
+## V-007 — Live MCP / Chrome pairing
+
+**目的:** 実際のChatGPT + Chrome Extension + Local Appで、Static Reviewだけでは確認できないBoundaryを検証する。
+
+**実測:** 既存ChromeのExtension browserと、app起動によるmodel-catalog tabは確認。Bridgeのno-token / bad-token / unsupported-origin拒否はPASS。正式pairing・reconnect・Live MCP・attributionは未検証。
+
+**確認:**
+
+- Extension Pairing
+- Session Attribution
+- Core MCP接続
+- Permission OFF時の`TOOL_DISABLED`
+- Unattributed CallのFail Closed
+- Compact & Resume
+- Worker Chat / Multi-agent
+
+## V-008 — Release candidate integrity
+
+Releaseを作る段階で実施する。
+
+- `SHA256SUMS.txt`生成
+- Windows Installer Hash独立確認
+- Extension ZIPに`ja.js`が含まれる
+- Update / Download URLが`Shota-Zaki/chat-on-steroids`配下のみ
+- Packaged Runtimeに日本語化Assetが含まれる
+
+## V-009 — Expanded dynamic/composite Japanese UI
+
+**対象:**
+
+- `src/renderer/context-meter.ts`
+- `src/renderer/ja-runtime.ts`
+- `src/renderer/ja-timeline.ts`
+- `src/renderer/ja-composite.ts`
+- `src/renderer/dom.ts`
+
+**目的:** Chatで追加した動的・複合UI日本語化が、保護対象のUser / Model / Tool payloadを変更せず表示だけを日本語化することを確認する。
+
+**個別確認:**
+
+- Context Meterの本文 / aria-labelが日本語
+- Permission group一括ON/OFF titleが日本語
+- Handshake / Problem count / Check中表示が日本語
+- macOS Menu Bar / Windows Tray説明が日本語
+- API Key保存状態 / Placeholderが日本語
+- Plan作成 / 保存 / キャンセル系UIが日本語
+- Browser Bridge状態が日本語
+- Session Footerの保持件数 / 過去履歴 / 稼働中表示が日本語
+- Task PlanのStage番号 / Edit / Delete / Validationだけ日本語で、Stage本文は原文保持
+- Pending InputのStatus / Retry / Cancelだけ日本語で、Message本文は原文保持
+- SwarmのSystem Hint / Pending / Delivered / Clear操作だけ日本語で、Task / Result本文は原文保持
+- Handoff先頭の統計行だけ日本語で、Handoff本文 / Noteは原文保持
+- Timeline grouped activity titleが日本語で、Tool引数 / Result / Model本文は原文保持
+
+**Command候補:**
+
+```sh
+npx vitest run test/japanese-ui.test.ts test/context-meter.test.ts
+npx vitest run test/renderer-state.test.ts test/renderer-timeline.test.ts test/renderer-layout.test.ts
+```
+
+必要なら`test/japanese-ui.test.ts`へ上記Composite BoundaryのRegressionを追加してから`npm run verify`を再実行する。
+
+## V-010 — Extension localization ownership regression
+
+**対象:** `extension/ja.js`、`src/renderer/ja.ts`、`src/renderer/ja-ui.ts`、`test/japanese-ui.test.ts`
+
+**状態:** 未検証 / Codex検証待ち
+
+**目的:** 今回追加したExtension-owned UIの日本語化と、Renderer Localization Observerの単一所有を確認する。
+
+**Command候補:**
+
+```sh
+npx vitest run test/japanese-ui.test.ts test/extension-popup.test.ts test/extension.test.ts
+npm run verify
+```
+
+**確認:** PopupのCopy結果、Compact / Goal / Loop設定と進行表示、Blocked説明が日本語であること。Model名・Run ID・Agent識別子、Tool / Protocol / User Dataは原文保持すること。`src/renderer/ja.ts`は辞書のみ、DOM Observerは保護境界を持つ`src/renderer/ja-ui.ts`が所有すること。
+
+## V-011 — Renderer observer ownership / dynamic-value preservation
+
+**対象:**
+
+- `src/renderer/ja.ts`
+- `src/renderer/ja-ui.ts`
+- `src/renderer/ja-runtime.ts`
+- `src/renderer/ja-timeline.ts`
+- `src/renderer/ja-composite.ts`
+- `src/renderer/ja-setup.ts`
+- `src/renderer/dom.ts`
+- `extension/ja.js`
+- `test/japanese-ui.test.ts`
+
+**状態:** 未検証 / Codex検証待ち
+
+**目的:** H-07 / H-08で変更したLocalization OwnershipとDynamic Data保持を、Unit Testと実画面の両方で確認する。
+
+**Command候補:**
+
+```sh
+npx vitest run test/japanese-ui.test.ts test/extension-popup.test.ts test/extension.test.ts
+npx vitest run test/renderer-state.test.ts test/renderer-timeline.test.ts test/renderer-layout.test.ts
+npm run verify
+```
+
+**静的 / Unit確認:**
+
+- Renderer一般DOM Observerは`ja-ui.ts`だけが所有する
+- `ja-runtime.ts`はPure TranslatorでありDOM Observerを持たない
+- Dynamic PatternはWhitespace-normalized文字列ではなく元文字列の外側だけを`trim()`してMatchする
+- `Rename /My  Folder`のFolder名内部の2 Spaceが維持される
+- `Extension folder: C:\\My  Folder`のPath内部の2 Spaceが維持される
+- `Could not check for a newer version: E  42.`のError本文内部の2 Spaceが維持される
+- Extension側もVersion / Run ID / Request ID / Error Capture等の内部文字列を保持する
+
+**Packaged / 実画面確認:**
+
+- User Goal本文が`Starting` / `Saved`等の辞書語と一致しても`#activeGoalRow`内で変形しない
+- User File名が辞書語と一致しても`#composerImages`のData表示・属性で変形しない
+- Folder名 / Path / Model名 / Agent名 / Run ID / Request IDは原文保持
+- Dynamic StatusのApp-owned周辺文言だけが日本語化される
+- Chrome ExtensionでError本文・Model名・Run IDを保持したまま周辺Labelだけが日本語化される
+
+## V-012 — Native file dialog localization — closed by policy
+
+**状態:** Closed / 実装不要
+
+`src/main/ipc.ts`はRuntime / IPC責務を持つため、日本語化だけを目的とした変更対象から外しました。Native File DialogのTitle / Filterに英語が残ることは許容します。
+
+以前`test/japanese-ui.test.ts`へ追加されたNative File Dialog日本語化の必須Regression Contractも撤回済みです。Diagnostic Error本文、File Path、IPC identifier、Tool / Protocol Contractは引き続き原文保持します。
+
+この項目はVerification待ちではなく、安定性優先の方針決定を記録するために残しています。
+
+## V-013 — Fork commit author privacy / noreply history
+
+**対象:** `scripts/verify-public-history.mjs`、`test/public-history-privacy.test.ts`、`main..work`の到達可能な未統合Commit History
+
+**状態:** **Completed / Historical — History Rewrite、Privacy Gate PASS、Regression PASS、Full Local Verification PASS。再実行不要。**
+
+**Historical trigger:** Rewrite前の`main..work`に、GitHub noreplyではないFork Maintainer Author / Committer metadataを持つ到達可能な未統合Commitが存在した。個人メール値そのものはDocument / PR本文へ記録しない。これは下記の修復で解決済みであり、今回再実行する作業ではない。
+
+**Privacy Gate修正範囲:**
+
+- Maintainer = `Shota-Zaki`
+- 許可Email = GitHub `users.noreply.github.com`形式のみ
+- Published Boundary = URLが完全一致する`Shota-Zaki/chat-on-steroids` Remoteの`main`
+- Exact Fork Remoteが無い場合、`origin/main`へFallbackしない
+- Exact Fork RemoteはあるがFetched `main`が無い場合、公開済みCommitを0件として扱う
+- upstream / unrelated RemoteをForkのPublished BoundaryとしてTrustしない
+- HEADへ到達しない無関係Refは検査対象へ混ぜない
+- Regression TestをFork Maintainer / Fork Remoteへ移行し、非noreply Test Fixtureには実在個人アドレスを使用しない
+
+**目的:** Fork用Privacy Gateと実Historyの両方を整合させ、公開前のFork Historyに個人メールアドレスを残さない。
+
+**Historical result:** Rewrite前の`work`先端をBundleへ保存し、当時の`main..work`の124コミットについてunsafe Maintainer Author / Committer metadataだけを修正した。Rewrite後のTree、commit message、名前、日時は不変で、Fork `main` / upstream `main`は変更していない。Privacy Gateはexit code 0、Privacy Regressionは16/16、Full Local Verificationも成功した。以後は通常の`npm run verify:privacy`で新規Commitを検査し、History Rewriteやforce pushは行わない。
+
+**Current invariant:** Maintainerは`Shota-Zaki`、許可EmailはGitHub `users.noreply.github.com`形式、Published BoundaryはURLが完全一致する`Shota-Zaki/chat-on-steroids` Remoteの`main`だけである。upstream / unrelated RemoteをForkのPublished BoundaryとしてTrustせず、個人メール値をIssue / PR / Documentへ転記しない。
+
+**完了条件:** History Rewrite、Privacy Gate、Local Verification、Package、Windows startup / Bridge securityは確認済み。Native UI、正式pairing / reconnect、Live MCP / attributionは未検証のため、PR #1はDraftを維持し、Merge / Release禁止は継続する。
+
+## GitHub Repository Settings
+
+GitHub Repository Admin設定は、作業範囲に含めて安全に適用し、APIで再確認した。
+
+### Issues
+
+- `has_issues=true` — **PASS**。
+- `.github/ISSUE_TEMPLATE/*`、README、CONTRIBUTINGの通常Bug / Feature報告導線と整合。
+- Security VulnerabilityはIssuesではなくGitHub Private Vulnerability Reporting / Security Advisoryを使用する現行`SECURITY.md`方針を維持する。
+
+### `main` protection / ruleset
+
+- `main` protection — **PASS**。
+- PR required、required approving reviews = 1、dismiss stale reviews、admin enforcementを設定。
+- Direct Push相当の保護として、force push / branch deletionを拒否。
+- このForkではGitHub ActionsをVerification Authorityにしないため、GitHub Actions CheckをRequired Status Checkへ設定しない。
+- `work`運用とPR #1 Draft方針は維持する。
+
+### GitHub Actions
+
+- `.github/workflows/`はupstream互換 / 参照目的で残してよい。
+- Workflowを手動実行・再実行しない。
+- GitHub Check / Workflow RunをPass判定に使わない。
+- Repository LevelのActions Permission状態は現在のConnectorでは確認・変更できなかったため、ForkでActions自体を無効化する運用ならRepository SettingsでManual確認する。
+
+## Deferred rule
+
+Chatで新しくLocal Verificationが必要になった場合は、既存V-001〜V-013へ統合できるものは重複追加せず追記する。Chat内ではLocal Verification待ちを理由に作業を停止しない。

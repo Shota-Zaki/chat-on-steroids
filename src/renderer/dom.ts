@@ -1,9 +1,25 @@
+import { installJapaneseUi, translateJapaneseUiText } from './ja-ui.js';
+import { installJapaneseTimelineUi } from './ja-timeline.js';
+import { installJapaneseCompositeUi } from './ja-composite.js';
+import { installJapaneseSetupUi } from './ja-setup.js';
+import { shouldInstallJapaneseUi } from './ja-origin.js';
+
 /**
  * The handful of DOM helpers both panels need.
  *
  * Nothing here knows about app state, and nothing here uses innerHTML — every node is
  * built from text, so a session title or a tool argument can never become markup.
  */
+
+const japanesePresentation =
+  typeof window !== 'undefined' && shouldInstallJapaneseUi(window.location);
+
+if (japanesePresentation) {
+  installJapaneseUi();
+  installJapaneseTimelineUi();
+  installJapaneseCompositeUi();
+  installJapaneseSetupUi();
+}
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -46,7 +62,8 @@ let toastTimer: number | undefined;
 
 export function toast(message: string): void {
   document.querySelector('.toast')?.remove();
-  const node = el('div', 'toast', message);
+  const text = japanesePresentation ? translateJapaneseUiText(message) : message;
+  const node = el('div', 'toast', text);
   document.body.append(node);
   window.clearTimeout(toastTimer);
   toastTimer = window.setTimeout(() => node.remove(), 3200);
@@ -64,29 +81,35 @@ export async function run<T>(
   return reply.data;
 }
 
-/** "12s ago" for a timestamp the main process vouched for, "never" for null. */
+/** Relative age for a timestamp the main process vouched for. */
 export function ago(atMs: number | null): string {
-  if (atMs === null) return 'never';
+  if (atMs === null) return japanesePresentation ? 'なし' : 'never';
   const seconds = Math.max(0, Math.round((Date.now() - atMs) / 1000));
-  if (seconds < 3) return 'just now';
-  if (seconds < 90) return `${seconds}s ago`;
+  if (seconds < 3) return japanesePresentation ? 'たった今' : 'just now';
+  if (seconds < 90) return japanesePresentation ? `${seconds}秒前` : `${seconds}s ago`;
   const minutes = Math.round(seconds / 60);
-  return minutes < 90 ? `${minutes}m ago` : `${Math.round(minutes / 60)}h ago`;
+  if (minutes < 90) return japanesePresentation ? `${minutes}分前` : `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  return japanesePresentation ? `${hours}時間前` : `${hours}h ago`;
 }
 
-/** The same age as one glanceable token: "8s", "2m", "—" when there is nothing. */
+/** The same age as one glanceable token. */
 export function shortAgo(atMs: number | null): string {
   if (atMs === null) return '—';
   const seconds = Math.max(0, Math.round((Date.now() - atMs) / 1000));
-  if (seconds < 3) return 'now';
-  if (seconds < 90) return `${seconds}s`;
+  if (seconds < 3) return japanesePresentation ? '今' : 'now';
+  if (seconds < 90) return japanesePresentation ? `${seconds}秒` : `${seconds}s`;
   const minutes = Math.round(seconds / 60);
-  return minutes < 90 ? `${minutes}m` : `${Math.round(minutes / 60)}h`;
+  if (minutes < 90) return japanesePresentation ? `${minutes}分` : `${minutes}m`;
+  const hours = Math.round(minutes / 60);
+  return japanesePresentation ? `${hours}時間` : `${hours}h`;
 }
 
 /** A clock time for one event in a timeline. */
 export function clockTime(atMs: number): string {
-  return new Date(atMs).toLocaleTimeString();
+  return japanesePresentation
+    ? new Date(atMs).toLocaleTimeString('ja-JP')
+    : new Date(atMs).toLocaleTimeString();
 }
 
 /** "1.2k", "3.4M" — for token and character counts that get large. */

@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
-const maintainerLogin = 'totec448-spec';
-const safeMaintainerEmail = /^(?:\d+\+)?totec448-spec@users\.noreply\.github\.com$/i;
+const maintainerLogin = 'Shota-Zaki';
+const safeMaintainerEmail = /^(?:\d+\+)?Shota-Zaki@users\.noreply\.github\.com$/i;
 
 // Keep the blocked values split so this guard does not contain the data it rejects.
 const blockedText = [
@@ -37,7 +37,7 @@ function checkMaintainerIdentity(name, email, location) {
   const normalizedName = name.trim().toLowerCase();
   const normalizedEmail = email.trim().replace(/^<|>$/g, '').toLowerCase();
   const belongsToMaintainer =
-    normalizedName === maintainerLogin || normalizedEmail.includes(maintainerLogin);
+    normalizedName === maintainerLogin.toLowerCase() || normalizedEmail.includes(maintainerLogin.toLowerCase());
   if (belongsToMaintainer && !safeMaintainerEmail.test(normalizedEmail)) {
     return [`${location} uses a non-noreply maintainer email`];
   }
@@ -78,7 +78,7 @@ function checkMessageFile(messagePath) {
 }
 
 /**
- * Commits that are already published on the public main line.
+ * Commits that are already published on the hardened fork's public main line.
  *
  * The gate exists to keep a private value from *entering* public history. A commit that is
  * already on the canonical repository's main has entered it, and refusing every later local push cannot
@@ -88,17 +88,19 @@ function checkMessageFile(messagePath) {
  * checked. Removing a value from published history is a deliberate rewrite of a public branch,
  * not something a pre-push hook should be able to demand.
  *
- * A fork's origin may lag upstream. Select by exact repository URL, never by the name
- * "upstream". Without a canonical remote, retain the legacy origin/main convention.
- * If a configured canonical remote has no fetched main, exempt nothing.
+ * A fork's origin may lag another remote. Select the hardened fork by exact repository URL,
+ * never by the remote name. If that exact remote or its fetched main is absent, exempt nothing.
+ * Never substitute origin/main: origin may point at upstream, which is not this fork's published
+ * boundary and must not exempt work-only maintainer history.
  */
 function publishedCommits() {
   const remotes = String(runGit(['remote']).stdout).split(/\r?\n/).filter(Boolean);
   const canonical = remotes.find((remote) => {
     const url = String(runGit(['remote', 'get-url', remote]).stdout).trim();
-    return /^(?:https?:\/\/github\.com\/|ssh:\/\/git@github\.com\/|git@github\.com:)totec448-spec\/chat-on-steroids(?:\.git)?\/?$/i.test(url);
+    return /^(?:https?:\/\/github\.com\/|ssh:\/\/git@github\.com\/|git@github\.com:)Shota-Zaki\/chat-on-steroids(?:\.git)?\/?$/i.test(url);
   });
-  const publishedRef = `refs/remotes/${canonical ?? 'origin'}/main`;
+  if (!canonical) return new Set();
+  const publishedRef = `refs/remotes/${canonical}/main`;
   const ref = runGit(['rev-parse', '--verify', '--quiet', publishedRef], {
     allowFailure: true,
   });

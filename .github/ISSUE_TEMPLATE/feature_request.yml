@@ -1,31 +1,31 @@
-name: Feature request
-description: Suggest a concrete improvement to Chat On Steroids.
+name: 機能要望
+description: Chat On Steroidsの具体的な改善案を提案します。
 labels: [enhancement]
 body:
   - type: markdown
     attributes:
       value: |
-        Please describe the workflow or limitation first. A new permanently exposed MCP
-        tool is intentionally a high bar; many workflows belong on the existing primitives.
+        まず解決したいWorkflowや現在の制約を説明してください。
+        常時公開する新しいMCP Toolの追加は慎重に判断します。既存Primitiveで解決できるWorkflowも多いため、最小の改善を優先します。
 
   - type: textarea
     id: problem
     attributes:
-      label: Problem or workflow
-      description: What are you trying to do, and what blocks or slows you down today?
+      label: 問題 / Workflow
+      description: 何を実現したいか、現在どこで止まる・遅くなるかを説明してください。
     validations:
       required: true
 
   - type: textarea
     id: proposal
     attributes:
-      label: Proposed change
-      description: Describe the smallest change that would solve the problem.
+      label: 提案する変更
+      description: 問題を解決するための必要最小限の変更を説明してください。
     validations:
       required: true
 
   - type: textarea
     id: alternatives
     attributes:
-      label: Alternatives considered
-      description: Optional. Include workarounds or existing tools/workflows you tried.
+      label: 検討した代替案
+      description: 任意。試したWorkaroundや既存Tool / Workflowがあれば記載してください。

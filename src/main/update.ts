@@ -47,10 +47,8 @@ import { pipeline } from 'node:stream/promises';
 import { app } from 'electron';
 import { logInfo, logWarn } from './logger.js';
 import { APP_VERSION } from './version.js';
+import { LATEST_RELEASE_API, releaseAssetUrl } from '../shared/release.js';
 import { isNewer, type UpdateStatus } from '../shared/types.js';
-
-const REPO = 'totec448-spec/chat-on-steroids';
-const LATEST_RELEASE_API = `https://api.github.com/repos/${REPO}/releases/latest`;
 
 const CHECK_TIMEOUT_MS = 15_000;
 const DOWNLOAD_TIMEOUT_MS = 10 * 60_000;
@@ -159,10 +157,19 @@ export function checkForUpdates(): Promise<void> {
 
 async function runPass(): Promise<void> {
   set({ stage: 'checking', error: null });
-  const release = { version: await latestVersion() };
+  const version = await latestVersion();
   // GitHub answered. From here the UI can tell "current" from "not asked yet", whatever the
   // rest of this pass does with the answer.
   set({ checkedAt: Date.now() });
+  // A hardened fork is valid before its first release exists. Do not fall back to upstream and
+  // do not turn that expected 404 into a permanent red update error in the UI.
+  if (version === null) {
+    staged = null;
+    set({ latest: null, stage: 'idle' });
+    logInfo('update: this hardened fork has no published release yet');
+    return;
+  }
+  const release = { version };
   // A newly published selection retires the previous executable authority before any file replacement.
   if (staged?.version !== release.version || !isNewer(release.version, APP_VERSION)) staged = null;
   if (!isNewer(release.version, APP_VERSION)) {
@@ -241,10 +248,14 @@ async function adopt(version: string, name: string, expected: string): Promise<s
 }
 
 /** The one fact the release API is asked for: which version is newest. */
-async function latestVersion(): Promise<string> {
-  const response = await get(LATEST_RELEASE_API, CHECK_TIMEOUT_MS, {
-    accept: 'application/vnd.github+json'
-  });
+async function latestVersion(): Promise<string | null> {
+  const response = await get(
+    LATEST_RELEASE_API,
+    CHECK_TIMEOUT_MS,
+    { accept: 'application/vnd.github+json' },
+    [404]
+  );
+  if (response.status === 404) return null;
   const body = (await response.json()) as { tag_name?: unknown };
   const version = releaseVersion(body.tag_name);
   if (!version) throw new Error('the latest release has no usable version tag');
@@ -272,16 +283,23 @@ async function releaseDigests(version: string): Promise<Map<string, string>> {
 
 /** The url of one release asset. Built here, never taken from a response body. */
 function assetUrl(version: string, name: string): string {
-  return `https://github.com/${REPO}/releases/download/v${encodeURIComponent(version)}/${name}`;
+  return releaseAssetUrl(version, name);
 }
 
-async function get(url: string, timeout: number, headers: Record<string, string> = {}): Promise<Response> {
+async function get(
+  url: string,
+  timeout: number,
+  headers: Record<string, string> = {},
+  allowedStatuses: readonly number[] = []
+): Promise<Response> {
   const response = await fetch(url, {
     signal: AbortSignal.timeout(timeout),
     redirect: 'follow',
     headers: { 'user-agent': `chat-on-steroids/${APP_VERSION}`, ...headers }
   });
-  if (!response.ok) throw new Error(`${new URL(url).pathname.split('/').pop()} answered ${response.status}`);
+  if (!response.ok && !allowedStatuses.includes(response.status)) {
+    throw new Error(`${new URL(url).pathname.split('/').pop()} answered ${response.status}`);
+  }
   return response;
 }
 

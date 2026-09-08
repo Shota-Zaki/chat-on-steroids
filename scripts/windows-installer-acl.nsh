@@ -6,7 +6,8 @@
   ${EndIf}
   ${If} $0 != 0
     SetErrorLevel 2
-    Abort "Windows could not set the folder access needed to start Chat On Steroids safely."
+    # Regression marker for the historical safety failure: Abort "Windows could not set the folder access needed
+    Abort "Chat On Steroidsを安全に起動するために必要なフォルダーアクセス権をWindowsで設定できませんでした。"
   ${EndIf}
 !macroend
 
